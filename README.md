@@ -5,6 +5,8 @@ In this repository, you will find the base code for the framework, documentation
 
 ## Change Log
 
+- **08-09-2025**: [Final phase results](results/final_phase.pdf) are now available. See section [Challenge Results Explanation](#challenge-results-explanation) for more details.
+- **08-09-2025**: Dataset `X` is now available.
 - **26-06-2025**: [Preliminary qualification phase results](results/qualification_phase.pdf) are now available. See section [Challenge Results Explanation](#challenge-results-explanation) for more details.
 - **16-04-2025**: [Sprint phase results](results/sprint_phase.pdf) updated. See section [Challenge Results Explanation](#challenge-results-explanation) for more details.
 - **15-04-2025**: [Sprint phase results](results/sprint_phase.pdf) are now available.
@@ -70,6 +72,9 @@ Spanish and Portuguese versions of the challenge rules and problem description c
   - `ChallengeSolver.java` ⟶ Java class responsible for solving the wave order picking problem. Most of the solving logic should be implemented here.
   - `ChallengeSolution.java` ⟶ Java class representing the solution to the wave order picking problem.
 - `datasets/` ⟶ Directory containing input instance files.
+  - `a/` ⟶ Dataset A with 20 instances.
+  - `b/` ⟶ Dataset B with 15 instances.
+  - `x/` ⟶ Dataset X with 15 instances.
 - `run_challenge.py` ⟶ Python script to compile code, run benchmarks, and evaluate solutions.
 - `checker.py` ⟶ Python script for evaluating the feasibility and objective value of solutions.
 
