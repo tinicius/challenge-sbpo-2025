@@ -5,6 +5,10 @@ In this repository, you will find the base code for the framework, documentation
 
 ## Change Log
 
+- **03-11-2025**: Best solutions across all three challenge phases are now available, including [individual solution files](best_solutions/) and a [`best_objectives.csv`](best_solutions/best_objectives.csv) summary with the best (maximum) objective value for each instance.
+
+**Final Remarks**: We would like to extend our deepest gratitude to all participants who made this challenge an incredible success. Your dedication, creativity, and technical excellence have been truly inspiring. We also wish to thank the SBPO organizing team for their outstanding support in making this challenge possible.
+
 - **08-09-2025**: [Final phase results](results/final_phase.pdf) are now available. See section [Challenge Results Explanation](#challenge-results-explanation) for more details.
 - **08-09-2025**: Dataset `X` is now available.
 - **26-06-2025**: [Preliminary qualification phase results](results/qualification_phase.pdf) are now available. See section [Challenge Results Explanation](#challenge-results-explanation) for more details.
