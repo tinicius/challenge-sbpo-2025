@@ -87,5 +87,8 @@ class WaveOrderPicking:
         # Calculate the number of visited aisles
         num_visited_aisles = len(visited_aisles)
 
+        if num_visited_aisles == 0:
+            return 0.0
+
         # Objective function: total units picked / number of visited aisles
         return total_units_picked / num_visited_aisles
