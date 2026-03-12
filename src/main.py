@@ -1,12 +1,14 @@
 from impl.greedy import Greedy
 from impl.aisle_centric import AisleCentric
 from impl.order_clustering import OrderClustering
+from impl.simple_heuristic import SimpleHeuristic
+
 from models.solver import Solver
 import os
 from sys import argv
 
 from utils.generate_output import generate_output
-from utils.read_input import readInput
+from utils.read_input import read_input
 from utils.wave_order_picking import WaveOrderPicking
 
 import csv
@@ -36,7 +38,7 @@ def process(solver_class):
         input_file = os.path.join(input_folder, filename)
         output_file = os.path.join(output_folder, filename)
 
-        nOrders, nItems, nAisles, orders, aisles, lb, ub = readInput(input_file)
+        nOrders, nItems, nAisles, orders, aisles, lb, ub = read_input(input_file)
         solver = solver_class(nOrders, nAisles, orders, aisles, lb, ub)
 
         solve(output_file, solver)
@@ -75,9 +77,7 @@ def process(solver_class):
 if __name__ == "__main__":
 
     solvers = [
-        Greedy,
-        AisleCentric,
-        OrderClustering,
+        SimpleHeuristic
     ]
 
     for solver_class in solvers:

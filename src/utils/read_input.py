@@ -1,4 +1,4 @@
-def readInput(filename: str):
+def read_input(filename: str):
     with open(filename, 'r') as file:
         data = file.read()
 
