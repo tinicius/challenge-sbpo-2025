@@ -184,3 +184,66 @@ objective       = 12 / 3 = 4.0
 - **No aisle awareness during order selection.** The heuristic deliberately avoids using aisle data when ranking orders. This makes it fast and keeps the order-selection and aisle-selection concerns separated.
 - **Seed choice drives quality.** A seed that represents a "profitable" item profile will attract similar high-value orders. Trying multiple seeds (e.g., all orders, or the `k` largest) and keeping the best wave is a natural extension.
 - **Aisle selection is not minimised.** The greedy aisle step adds aisles in index order, which is not guaranteed to minimise `n_aisles`. A set-cover or greedy-by-coverage approach could reduce this further.
+
+---
+
+## Implementation Insights & Bug Analysis
+
+### Was the previous implementation correct?
+
+No. The original `simple_heuristic.py` contained three categories of bugs that caused it to behave as a plain **First-Come-First-Served (FCFS)** greedy rather than the documented Jaccard-similarity-seed algorithm.
+
+---
+
+### Bug 1 — Jaccard ranking was never performed
+
+The documented algorithm ranks *remaining* orders (those not in the seed) by Jaccard similarity to the seed's item profile, and then fills the wave in that order. The original code never computed similarities; it simply iterated through the seed list in order and stopped after exhausting it. Because `main.py` provided the **complete** set of orders (in a random permutation) as the seed, there were **zero remaining orders** to rank, and the similarity-ranking phase was completely bypassed.
+
+**Impact:** The algorithm degraded to "shuffle all orders, greedily pick from front until UB is reached" — i.e., FCFS with a random shuffle.
+
+---
+
+### Bug 2 — No lower-bound (LB) feasibility check
+
+The documented Step 4 rejects the wave if `total_units < LB` and returns an empty solution. The original code had no such guard, so it could emit solutions that violated the minimum wave size.
+
+---
+
+### Bug 3 — Broken aisle selection (loop-variable scope + no supply accumulation)
+
+```python
+# Original (buggy) aisle selection
+for item_aisle in aisle.keys():
+    if item_order != item_aisle:
+        continue           # <-- only `continue`, the loop keeps going
+
+if aisle[item_aisle] >= quantity_order:   # item_aisle = LAST key in dict, not item_order
+    aisle[item_order] = aisle[item_aisle] - quantity_order
+    selected_aisles.add(aisle_idx)        # always adds the aisle regardless of prior supply
+```
+
+Two problems here:
+
+1. **Python loop variable retention after the loop exits:** after the `for item_aisle in aisle.keys()` loop completes, `item_aisle` holds the **last key** iterated over. Because the loop body only skips iterations with `continue` (rather than storing the matching key), there is no guarantee that `item_aisle == item_order` after the loop. The subsequent `aisle[item_aisle]` look-up therefore reads the wrong item.
+2. **No supply accumulation:** the code checks `aisle[item_aisle] >= quantity_order` per-aisle in isolation. It adds an aisle whenever its individual stock meets the per-order demand, without accounting for how much supply has already been gathered from previously selected aisles. This causes both over-selection (adding redundant aisles) and under-selection (skipping aisles where partial supply is needed to satisfy cumulative demand).
+
+---
+
+### Why were results similar or identical?
+
+Three compounding reasons:
+
+1. **Seed = full permutation.** `main.py` built seeds as `random.sample(range(nOrders), nOrders)` — a complete random shuffle of every order. The documented algorithm's Jaccard-ranking phase therefore had *no* remaining orders to rank; every run was just FCFS with a different shuffle.
+
+2. **FCFS converges to the same capacity.** A greedy selection that stops at `UB` tends to reach approximately the same total-units regardless of shuffle order (it keeps adding orders until it *can't* add another without exceeding UB). Different shuffles usually end up picking a similar or identical number of orders, yielding the same numerator `total_units` in the objective.
+
+3. **Aisle-selection bug inflated denominator uniformly.** Because the buggy aisle loop added aisles indiscriminately, many runs produced the same inflated `n_aisles`, keeping the ratio `total_units / n_aisles` nearly constant across runs.
+
+---
+
+### Fixes applied
+
+| Location | Change |
+|---|---|
+| `src/impl/simple_heuristic.py` | Full rewrite to implement the documented Jaccard-similarity-seed algorithm; added `_similarity()`, seed initialisation, similarity ranking of remaining orders, LB check, and correct per-item supply-accumulation aisle selection. |
+| `src/main.py` | Changed seed generation from full random permutations to **single-order seeds**, so each of the 5 runs anchors the wave on a different order's item profile, and Jaccard ranking is actually exercised over the remaining orders. |
