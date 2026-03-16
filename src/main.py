@@ -116,6 +116,11 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
 
 
 def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
+    # Each run uses a single randomly chosen order as the seed anchor.
+    # The solver then ranks ALL remaining orders by Jaccard similarity to
+    # the seed order's item profile and greedily fills the wave from there.
+    # Using distinct single-order seeds across runs produces meaningfully
+    # different item-profile anchors and therefore genuinely different waves.
 
     runs = 1
 
@@ -151,16 +156,9 @@ def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
 
     runs = 1
 
-    base = list(range(0, input.nOrders))
+    seed_orders = random.sample(range(input.nOrders), min(runs, input.nOrders))
 
-    configs = []
-
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    for seed in seeds:
-        configs.append({"seed": seed})
-
-    return configs
+    return [{"seed": [order_idx]} for order_idx in seed_orders]
 
 
 if __name__ == "__main__":
