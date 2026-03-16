@@ -3,78 +3,75 @@ from models.solver import Solver
 
 class SimpleHeuristic(Solver):
 
-    def _generate_seed(self) -> list[int]:
-        """Return a seed list containing the index of the largest order by total units."""
-        largest = max(range(self.n_orders), key=lambda i: sum(self.orders[i].values()))
-        return [largest]
-
-    def _similarity(self, items_a: set, items_b: set) -> float:
-        """Jaccard similarity on item key sets. Swap this method to change the metric."""
-        if not items_a and not items_b:
-            return 0.0
-        return len(items_a & items_b) / len(items_a | items_b)
-
     def solve(self) -> tuple[list[int], list[int]]:
-        seed = self._generate_seed()
-        seed_set = set(seed)
+        # Idea: Select orders base read order (First Come First Serve) until wave size is within [lb, ub].
 
-        # --- Phase 1: initialise wave from seed orders ---
-        selected_orders: list[int] = []
-        total_units = 0
-        ref_items: set = set()
+        seed = self.config["seed"]
+
+        if not seed:
+            raise ValueError("Seed not provided in config for SimpleHeuristic")
+
+        stock: dict = {}
+
+        for aisle in self.aisles:
+
+            for item_idx in aisle.keys():
+                quantity = aisle[item_idx]
+
+                stock[item_idx] = stock.get(item_idx, 0) + quantity
+
+        count = 0
+        selected_orders = []
+
+        selected_aisles = set()
 
         for order_idx in seed:
-            order = self.orders[order_idx]
-            order_units = sum(order.values())
-            if total_units + order_units <= self.ub:
+
+            order_size = sum(self.orders[order_idx].values())
+
+            size_restriction = count + order_size <= self.ub
+
+            has_all_items = True
+
+            for item, quantity in self.orders[order_idx].items():
+                if stock[item] < quantity:
+                    has_all_items = False
+                    break
+
+            # if not size_restriction:
+            #     print(
+            #         f"Order Size: {order_size}, Current Count: {count}, LB: {self.lb}, UB: {self.ub}"
+            #     )
+            #     print(f"Order {order_idx} skipped due to size restriction.")
+
+            # if not has_all_items:
+            #     print(self.orders[order_idx])
+            #     print(stock)
+            #     print(f"Order {order_idx} skipped due to insufficient stock.")
+
+            if size_restriction and has_all_items:
+
+                for item, quantity in self.orders[order_idx].items():
+                    stock[item] -= quantity
+
                 selected_orders.append(order_idx)
-                total_units += order_units
-                ref_items.update(order.keys())
+                count += order_size
 
-        # --- Phase 2: rank remaining orders by similarity to ref_items ---
-        similarities: list[tuple[float, int]] = []
-        for order_idx in range(self.n_orders):
-            if order_idx in seed_set:
-                continue
-            order_items = set(self.orders[order_idx].keys())
-            sim = self._similarity(ref_items, order_items)
-            similarities.append((sim, order_idx))
-
-        similarities.sort(key=lambda x: x[0], reverse=True)
-
-        # --- Phase 3: greedy fill up to UB ---
-        for _sim, order_idx in similarities:
-            order = self.orders[order_idx]
-            order_units = sum(order.values())
-            if total_units + order_units <= self.ub:
-                selected_orders.append(order_idx)
-                total_units += order_units
-
-        # --- Phase 4: LB feasibility check ---
-        if total_units < self.lb:
-            return ([], [])
-
-        # --- Phase 5: greedy aisle selection ---
-        total_demand: dict = {}
         for order_idx in selected_orders:
-            for item, qty in self.orders[order_idx].items():
-                total_demand[item] = total_demand.get(item, 0) + qty
 
-        visited_aisles: set = set()
-        current_supply: dict = {}
+            for item_order, quantity_order in self.orders[order_idx].items():
 
-        for item_id, needed in total_demand.items():
-            if current_supply.get(item_id, 0) >= needed:
-                continue
-            for aisle_idx in range(self.n_aisles):
-                if aisle_idx in visited_aisles:
-                    continue
-                if self.aisles[aisle_idx].get(item_id, 0) > 0:
-                    visited_aisles.add(aisle_idx)
-                    for itm, stk in self.aisles[aisle_idx].items():
-                        current_supply[itm] = current_supply.get(itm, 0) + stk
-                    if current_supply.get(item_id, 0) >= needed:
-                        break
+                for aisle_idx in range(len(self.aisles)):
 
-        return (selected_orders, sorted(visited_aisles))
+                    aisle = self.aisles[aisle_idx]
 
+                    for item_aisle in aisle.keys():
+
+                        if item_order != item_aisle:
+                            continue
+
+                    if aisle[item_aisle] >= quantity_order:
+                        aisle[item_order] = aisle[item_aisle] - quantity_order
+                        selected_aisles.add(aisle_idx)
+
+        return selected_orders, list(selected_aisles)

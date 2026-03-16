@@ -1,17 +1,20 @@
-def read_input(filename: str):
-    with open(filename, 'r') as file:
+from models.solver import ProblemInput
+
+
+def read_input(filename: str) -> ProblemInput:
+    with open(filename, "r") as file:
         data = file.read()
 
     lines = data.splitlines()
 
-    nOrders = int(lines[0].split(' ')[0])
-    nItems = int(lines[0].split(' ')[1])
-    nAisles = int(lines[0].split(' ')[2])
+    nOrders = int(lines[0].split(" ")[0])
+    nItems = int(lines[0].split(" ")[1])
+    nAisles = int(lines[0].split(" ")[2])
 
     orders = []
 
     for o_i in range(nOrders):
-        order_line = lines[o_i + 1].split(' ')
+        order_line = lines[o_i + 1].split(" ")
 
         n_order_items = int(order_line[0])
 
@@ -28,7 +31,7 @@ def read_input(filename: str):
     aisles = []
 
     for o_i in range(nAisles):
-        aisle_line = lines[o_i + 1 + nOrders].split(' ')
+        aisle_line = lines[o_i + 1 + nOrders].split(" ")
 
         n_aisle_items = int(aisle_line[0])
 
@@ -42,9 +45,17 @@ def read_input(filename: str):
 
         aisles.append(details)
 
-    wave_size_line = lines[nOrders + nAisles + 1].split(' ')
+    wave_size_line = lines[nOrders + nAisles + 1].split(" ")
 
     lb = int(wave_size_line[0])
     ub = int(wave_size_line[1])
 
-    return nOrders, nItems, nAisles, orders, aisles, lb, ub
+    return ProblemInput(
+        nOrders=nOrders,
+        nItems=nItems,
+        nAisles=nAisles,
+        orders=orders,
+        aisles=aisles,
+        lb=lb,
+        ub=ub,
+    )
