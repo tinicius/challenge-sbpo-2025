@@ -1,6 +1,9 @@
 from typing import Callable
 from impl.simple_heuristic import SimpleHeuristic
-from datetime import datetime, timezone
+from impl.similar_heuristic import SimilarHeuristic
+from impl.diff_heuristic import DiffHeuristic
+
+import time
 
 import random
 
@@ -49,10 +52,6 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
         if not filename.endswith(".txt"):
             continue
 
-        print(
-            f"Running {solver_config.solver_class.__name__} on {filename}", flush=True
-        )
-
         input_file = os.path.join(input_folder, filename)
         output_file = os.path.join(output_folder, filename)
 
@@ -64,11 +63,24 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
         objectives_sum = 0
         number_feasibles_solutions = 0
 
+        run = 0
+
+        start = time.perf_counter()
+
         for run_config in solver_config.get_runs(input):
+
+            total_runs = len(solver_config.get_runs(input))
 
             solver = solver_config.solver_class(input, run_config)
 
             solve(output_file, solver)
+
+            end = time.perf_counter()
+
+            print(
+                f"Running {solver_config.solver_class.__name__} on {filename} - {run + 1}/{total_runs} - Time: {end - start:.2f} seconds",
+                flush=True,
+            )
 
             selected_orders, visited_aisles = wave_order_picking.read_output(
                 output_file
@@ -105,7 +117,39 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
 
 def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
 
-    runs = 5
+    runs = 1
+
+    base = list(range(0, input.nOrders))
+
+    configs = []
+
+    seeds = [random.sample(base, len(base)) for _ in range(runs)]
+
+    for seed in seeds:
+        configs.append({"seed": seed})
+
+    return configs
+
+
+def similar_heuristic_runs(input: ProblemInput) -> list[dict]:
+
+    runs = 1
+
+    base = list(range(0, input.nOrders))
+
+    configs = []
+
+    seeds = [random.sample(base, len(base)) for _ in range(runs)]
+
+    for seed in seeds:
+        configs.append({"seed": seed})
+
+    return configs
+
+
+def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
+
+    runs = 1
 
     base = list(range(0, input.nOrders))
 
@@ -126,8 +170,18 @@ if __name__ == "__main__":
 
     solver_configs = [
         RunConfig(
-            "5",
+            "1",
             SimpleHeuristic,
+            simple_heuristic_runs,
+        ),
+        RunConfig(
+            "1",
+            SimilarHeuristic,
+            simple_heuristic_runs,
+        ),
+        RunConfig(
+            "1",
+            DiffHeuristic,
             simple_heuristic_runs,
         ),
     ]
