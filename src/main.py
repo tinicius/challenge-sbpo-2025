@@ -98,9 +98,13 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
                 objectives_sum += objective_value
                 number_feasibles_solutions += 1
 
-        results.append(
-            (dataset_name, filename, objectives_sum / number_feasibles_solutions)
+        avg = (
+            objectives_sum / number_feasibles_solutions
+            if number_feasibles_solutions > 0
+            else -1
         )
+
+        results.append((dataset_name, filename, avg))
 
     csv_path = os.path.join(
         objectives_dir,
@@ -116,11 +120,6 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
 
 
 def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
-    # Each run uses a single randomly chosen order as the seed anchor.
-    # The solver then ranks ALL remaining orders by Jaccard similarity to
-    # the seed order's item profile and greedily fills the wave from there.
-    # Using distinct single-order seeds across runs produces meaningfully
-    # different item-profile anchors and therefore genuinely different waves.
 
     runs = 1
 
@@ -163,7 +162,7 @@ def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
 
 if __name__ == "__main__":
 
-    input_folder = "datasets/b"
+    input_folder = "datasets/a"
     output_folder = "output"
 
     solver_configs = [

@@ -18,8 +18,6 @@ class SimilarHeuristic(Solver):
         return len(intersection) / len(union)
 
     def solve(self) -> tuple[list[int], list[int]]:
-        # Idea: Select orders base read order (First Come First Serve) until wave size is within [lb, ub].
-
         seed = self.config["seed"]
 
         if not seed:
@@ -42,16 +40,14 @@ class SimilarHeuristic(Solver):
 
                 stock[item_idx] = stock.get(item_idx, 0) + quantity
 
-        count = 0
-        selected_orders = []
-
-        selected_aisles = set()
+        total_units = 0
+        selected_orders: list[int] = []
 
         for order_idx in sorted_orders:
 
             order_size = sum(self.orders[order_idx].values())
 
-            size_restriction = count + order_size <= self.ub
+            size_restriction = total_units + order_size <= self.ub
 
             has_all_items = True
 
@@ -66,23 +62,33 @@ class SimilarHeuristic(Solver):
                     stock[item] -= quantity
 
                 selected_orders.append(order_idx)
-                count += order_size
+                total_units += order_size
+
+        if total_units < self.lb:
+            return [], []
+
+        demand: dict[int, int] = {}
 
         for order_idx in selected_orders:
+            for item, qty in self.orders[order_idx].items():
+                demand[item] = demand.get(item, 0) + qty
 
-            for item_order, quantity_order in self.orders[order_idx].items():
+        visited_aisles: set[int] = set()
 
-                for aisle_idx in range(len(self.aisles)):
+        for item, needed in demand.items():
+            supplied = sum(self.aisles[a].get(item, 0) for a in visited_aisles)
 
-                    aisle = self.aisles[aisle_idx]
+            if supplied >= needed:
+                continue
 
-                    for item_aisle in aisle.keys():
+            for aisle_idx in range(len(self.aisles)):
+                if supplied >= needed:
+                    break
+                if (
+                    aisle_idx not in visited_aisles
+                    and self.aisles[aisle_idx].get(item, 0) > 0
+                ):
+                    visited_aisles.add(aisle_idx)
+                    supplied += self.aisles[aisle_idx].get(item, 0)
 
-                        if item_order != item_aisle:
-                            continue
-
-                    if aisle[item_aisle] >= quantity_order:
-                        aisle[item_order] = aisle[item_aisle] - quantity_order
-                        selected_aisles.add(aisle_idx)
-
-        return selected_orders, list(selected_aisles)
+        return selected_orders, sorted(visited_aisles)
