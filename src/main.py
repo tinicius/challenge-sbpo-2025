@@ -1,6 +1,12 @@
 from typing import Callable
 from impl.simple_heuristic import SimpleHeuristic
 from impl.similarity_heuristic import SimilarityHeuristic
+from impl.order_batching_heuristics import (
+    LargestFirstHeuristic,
+    GreedyRatioHeuristic,
+    LocalSearchHeuristic,
+    GRASPHeuristic,
+)
 
 import time
 
@@ -123,15 +129,17 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
 runs = 5
 
 
-def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
+def _random_seeds(n_orders: int, n: int = runs) -> list[list[int]]:
+    """Return *n* independently shuffled permutations of order indices."""
+    base = list(range(n_orders))
+    return [random.sample(base, len(base)) for _ in range(n)]
 
-    base = list(range(0, input.nOrders))
+
+def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
 
     configs = []
 
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    for seed in seeds:
+    for seed in _random_seeds(input.nOrders):
         configs.append({"seed": seed})
 
     return configs
@@ -139,13 +147,9 @@ def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
 
 def similar_heuristic_runs(input: ProblemInput) -> list[dict]:
 
-    base = list(range(0, input.nOrders))
-
     configs = []
 
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    for seed in seeds:
+    for seed in _random_seeds(input.nOrders):
         configs.append({"seed": seed, "reverse": True})
 
     return configs
@@ -153,16 +157,36 @@ def similar_heuristic_runs(input: ProblemInput) -> list[dict]:
 
 def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
 
-    base = list(range(0, input.nOrders))
-
     configs = []
 
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    for seed in seeds:
+    for seed in _random_seeds(input.nOrders):
         configs.append({"seed": seed, "reverse": False})
 
     return configs
+
+
+def largest_first_runs(input: ProblemInput) -> list[dict]:
+
+    return [{"seed": seed} for seed in _random_seeds(input.nOrders)]
+
+
+def greedy_ratio_runs(input: ProblemInput) -> list[dict]:
+
+    return [{"seed": seed} for seed in _random_seeds(input.nOrders)]
+
+
+def local_search_runs(input: ProblemInput) -> list[dict]:
+
+    return [
+        {"seed": seed, "construction": "largest", "max_iter": 100}
+        for seed in _random_seeds(input.nOrders)
+    ]
+
+
+def grasp_runs(input: ProblemInput) -> list[dict]:
+    # Five runs with varying alpha values to balance greediness and diversity
+    alphas = [0.1, 0.2, 0.3, 0.4, 0.5]
+    return [{"n_iter": 5, "alpha": a, "max_ls_iter": 30} for a in alphas]
 
 
 if __name__ == "__main__":
@@ -185,6 +209,26 @@ if __name__ == "__main__":
             "diff",
             SimilarityHeuristic,
             diff_heuristic_runs,
+        ),
+        RunConfig(
+            "largest_first",
+            LargestFirstHeuristic,
+            largest_first_runs,
+        ),
+        RunConfig(
+            "greedy_ratio",
+            GreedyRatioHeuristic,
+            greedy_ratio_runs,
+        ),
+        RunConfig(
+            "local_search",
+            LocalSearchHeuristic,
+            local_search_runs,
+        ),
+        RunConfig(
+            "grasp",
+            GRASPHeuristic,
+            grasp_runs,
         ),
     ]
 
