@@ -1,7 +1,6 @@
 from typing import Callable
 from impl.simple_heuristic import SimpleHeuristic
-from impl.similar_heuristic import SimilarHeuristic
-from impl.diff_heuristic import DiffHeuristic
+from impl.similarity_heuristic import SimilarityHeuristic
 
 import time
 
@@ -77,11 +76,6 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
 
             end = time.perf_counter()
 
-            print(
-                f"Running {solver_config.solver_class.__name__} on {filename} - {run + 1}/{total_runs} - Time: {end - start:.2f} seconds",
-                flush=True,
-            )
-
             selected_orders, visited_aisles = wave_order_picking.read_output(
                 output_file
             )
@@ -98,6 +92,13 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
                 objectives_sum += objective_value
                 number_feasibles_solutions += 1
 
+            print(
+                f"{solver_config.name} - {filename} - {run + 1}/{total_runs} - Time: {end - start:.2f}s - Objective: {objective_value} - Feasible: {is_feasible}",
+                flush=True,
+            )
+
+            run += 1
+
         avg = (
             objectives_sum / number_feasibles_solutions
             if number_feasibles_solutions > 0
@@ -108,7 +109,7 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
 
     csv_path = os.path.join(
         objectives_dir,
-        f"{solver_config.solver_class.__name__}_{dataset_name}_{solver_config.name}.csv",
+        f"{solver_config.name}_{dataset_name}_{solver_config.name}.csv",
     )
 
     with open(csv_path, "w", newline="") as f:
@@ -119,9 +120,10 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
     print(f"\nResults written to {csv_path}")
 
 
-def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
+runs = 5
 
-    runs = 1
+
+def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
 
     base = list(range(0, input.nOrders))
 
@@ -137,7 +139,19 @@ def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
 
 def similar_heuristic_runs(input: ProblemInput) -> list[dict]:
 
-    runs = 1
+    base = list(range(0, input.nOrders))
+
+    configs = []
+
+    seeds = [random.sample(base, len(base)) for _ in range(runs)]
+
+    for seed in seeds:
+        configs.append({"seed": seed, "reverse": True})
+
+    return configs
+
+
+def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
 
     base = list(range(0, input.nOrders))
 
@@ -146,18 +160,9 @@ def similar_heuristic_runs(input: ProblemInput) -> list[dict]:
     seeds = [random.sample(base, len(base)) for _ in range(runs)]
 
     for seed in seeds:
-        configs.append({"seed": seed})
+        configs.append({"seed": seed, "reverse": False})
 
     return configs
-
-
-def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
-
-    runs = 1
-
-    seed_orders = random.sample(range(input.nOrders), min(runs, input.nOrders))
-
-    return [{"seed": [order_idx]} for order_idx in seed_orders]
 
 
 if __name__ == "__main__":
@@ -167,19 +172,19 @@ if __name__ == "__main__":
 
     solver_configs = [
         RunConfig(
-            "1",
+            "simple",
             SimpleHeuristic,
             simple_heuristic_runs,
         ),
         RunConfig(
-            "1",
-            SimilarHeuristic,
-            simple_heuristic_runs,
+            "similar",
+            SimilarityHeuristic,
+            similar_heuristic_runs,
         ),
         RunConfig(
-            "1",
-            DiffHeuristic,
-            simple_heuristic_runs,
+            "diff",
+            SimilarityHeuristic,
+            diff_heuristic_runs,
         ),
     ]
 

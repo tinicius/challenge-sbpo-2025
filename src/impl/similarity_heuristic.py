@@ -1,9 +1,10 @@
 from models.solver import Solver
+
 from impl.utils.greedy_aisle_select import greedy_aisle_select
-from impl.utils.table import write_dict_table_to_file
+from impl.utils.similarity import similarity
 
 
-class SimpleHeuristic(Solver):
+class SimilarityHeuristic(Solver):
 
     def is_order_possible(self, order: dict[int, int], stock: dict[int, int]) -> bool:
         for idx, qnt in order.items():
@@ -12,11 +13,11 @@ class SimpleHeuristic(Solver):
         return True
 
     def solve(self) -> tuple[list[int], list[int]]:
-
         seed = self.config["seed"]
+        reverse = self.config["reverse"]
 
         if not seed:
-            raise ValueError("Seed not provided in config for SimpleHeuristic")
+            raise ValueError("Seed not provided in config for SimilarHeuristic")
 
         stock: dict[int, int] = {}
 
@@ -24,19 +25,29 @@ class SimpleHeuristic(Solver):
             for item, qty in aisle.items():
                 stock[item] = stock.get(item, 0) + qty
 
-        selected_orders: list[int] = []
-        total_units = 0
+        first_order = self.orders[seed[0]]
 
-        for order_idx in seed:
+        sorted_orders = sorted(
+            seed,
+            key=lambda idx: similarity(first_order, self.orders[idx]),
+            reverse=reverse,
+        )
+
+        total_units = 0
+        selected_orders: list[int] = []
+
+        for order_idx in sorted_orders:
 
             if not self.is_order_possible(self.orders[order_idx], stock):
                 continue
 
-            order_units = sum(self.orders[order_idx].values())
+            order_size = sum(self.orders[order_idx].values())
 
-            if total_units + order_units <= self.ub:
+            size_restriction = total_units + order_size <= self.ub
+
+            if size_restriction:
                 selected_orders.append(order_idx)
-                total_units += order_units
+                total_units += order_size
 
                 for idx, qnt in self.orders[order_idx].items():
                     stock[idx] = stock.get(idx, 0) - qnt
@@ -46,24 +57,10 @@ class SimpleHeuristic(Solver):
 
         demand: dict[int, int] = {}
 
-        for order_idx in selected_orders:
-            for item, qty in self.orders[order_idx].items():
-                demand[item] = demand.get(item, 0) + qty
+        for idx in selected_orders:
+            for idx, qnt in self.orders[idx].items():
+                demand[idx] = demand.get(idx, 0) + qnt
 
         visited_aisles = greedy_aisle_select(demand, self.aisles)
-
-        # selected_stock: dict[int, int] = {}
-
-        # for idx in visited_aisles:
-        #     aisle = self.aisles[idx]
-        #     for item, qty in aisle.items():
-        #         selected_stock[item] = selected_stock.get(item, 0) + qty
-
-        # write_dict_table_to_file(
-        #     selected_stock, demand, missing_val="-", filename="comparison_table.txt"
-        # )
-        # write_dict_table_to_file(
-        #     stock, demand, missing_val="-", filename="comparison_table.txt"
-        # )
 
         return selected_orders, visited_aisles

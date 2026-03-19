@@ -9,11 +9,10 @@ class WaveOrderPicking:
         self.wave_size_ub = None
 
     def read_input(self, input_file_path):
-        with open(input_file_path, 'r') as file:
+        with open(input_file_path, "r") as file:
             lines = file.readlines()
             first_line = lines[0].strip().split()
-            o, i, a = int(first_line[0]), int(
-                first_line[1]), int(first_line[2])
+            o, i, a = int(first_line[0]), int(first_line[1]), int(first_line[2])
 
             # Read orders
             self.orders = []
@@ -21,7 +20,9 @@ class WaveOrderPicking:
                 order_line = lines[j + 1].strip().split()
                 d = int(order_line[0])
                 order_map = {
-                    int(order_line[2 * k + 1]): int(order_line[2 * k + 2]) for k in range(d)}
+                    int(order_line[2 * k + 1]): int(order_line[2 * k + 2])
+                    for k in range(d)
+                }
                 self.orders.append(order_map)
 
             # Read aisles
@@ -30,7 +31,9 @@ class WaveOrderPicking:
                 aisle_line = lines[j + o + 1].strip().split()
                 d = int(aisle_line[0])
                 aisle_map = {
-                    int(aisle_line[2 * k + 1]): int(aisle_line[2 * k + 2]) for k in range(d)}
+                    int(aisle_line[2 * k + 1]): int(aisle_line[2 * k + 2])
+                    for k in range(d)
+                }
                 self.aisles.append(aisle_map)
 
             # Read wave size bounds
@@ -39,14 +42,14 @@ class WaveOrderPicking:
             self.wave_size_ub = int(bounds[1])
 
     def read_output(self, output_file_path):
-        with open(output_file_path, 'r') as file:
+        with open(output_file_path, "r") as file:
             lines = file.readlines()
             num_orders = int(lines[0].strip())
-            selected_orders = [int(lines[i + 1].strip())
-                               for i in range(num_orders)]
+            selected_orders = [int(lines[i + 1].strip()) for i in range(num_orders)]
             num_aisles = int(lines[num_orders + 1].strip())
-            visited_aisles = [int(lines[num_orders + 2 + i].strip())
-                              for i in range(num_aisles)]
+            visited_aisles = [
+                int(lines[num_orders + 2 + i].strip()) for i in range(num_aisles)
+            ]
 
         selected_orders = list(set(selected_orders))
         visited_aisles = list(set(visited_aisles))
@@ -59,7 +62,9 @@ class WaveOrderPicking:
 
         # Check if total units picked are within bounds
         if not (self.wave_size_lb <= total_units_picked <= self.wave_size_ub):
-            print(f"Total units picked {total_units_picked} not within bounds [{self.wave_size_lb}, {self.wave_size_ub}]")
+            print(
+                f"Total units picked {total_units_picked} not within bounds [{self.wave_size_lb}, {self.wave_size_ub}]"
+            )
             return False
 
         # Compute all items that are required by the selected orders
@@ -69,12 +74,14 @@ class WaveOrderPicking:
 
         # Check if all required items are available in the visited aisles
         for item in required_items:
-            total_required = sum(self.orders[order].get(
-                item, 0) for order in selected_orders)
-            total_available = sum(self.aisles[aisle].get(
-                item, 0) for aisle in visited_aisles)
+            total_required = sum(
+                self.orders[order].get(item, 0) for order in selected_orders
+            )
+            total_available = sum(
+                self.aisles[aisle].get(item, 0) for aisle in visited_aisles
+            )
             if total_required > total_available:
-                print(f"Item {item} requires {total_required} units but only {total_available} available in visited aisles")
+                # print(f"Item {item} requires {total_required} units but only {total_available} available in visited aisles")
                 return False
 
         return True
