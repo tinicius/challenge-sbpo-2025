@@ -1,6 +1,7 @@
 from typing import Callable
 from impl.simple_heuristic import SimpleHeuristic
 from impl.similarity_heuristic import SimilarityHeuristic
+from impl.aisle_first import AisleFirstHeuristic
 
 import time
 
@@ -165,6 +166,23 @@ def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
     return configs
 
 
+def aisle_first_heuristic_runs(input: ProblemInput) -> list[dict]:
+
+    base = list(range(0, input.nOrders))
+
+    configs = []
+
+    seeds = [random.sample(base, len(base)) for _ in range(runs)]
+
+    # for seed in seeds:
+    #     configs.append({"seed": seed, "reverse": False})
+
+    for _ in range(runs):
+        configs.append({})
+
+    return configs
+
+
 if __name__ == "__main__":
 
     input_folder = "datasets/a"
@@ -176,15 +194,20 @@ if __name__ == "__main__":
             SimpleHeuristic,
             simple_heuristic_runs,
         ),
+        # RunConfig(
+        #     "similar",
+        #     SimilarityHeuristic,
+        #     similar_heuristic_runs,
+        # ),
+        # RunConfig(
+        #     "diff",
+        #     SimilarityHeuristic,
+        #     diff_heuristic_runs,
+        # ),
         RunConfig(
-            "similar",
-            SimilarityHeuristic,
-            similar_heuristic_runs,
-        ),
-        RunConfig(
-            "diff",
-            SimilarityHeuristic,
-            diff_heuristic_runs,
+            "aisle_first",
+            AisleFirstHeuristic,
+            aisle_first_heuristic_runs,
         ),
     ]
 
