@@ -1,5 +1,7 @@
 import numpy as np
 
+from models.solver import ProblemInput
+
 
 class WaveOrderPicking:
     def __init__(self):
@@ -40,6 +42,12 @@ class WaveOrderPicking:
             bounds = lines[o + a + 1].strip().split()
             self.wave_size_lb = int(bounds[0])
             self.wave_size_ub = int(bounds[1])
+
+    def load_problem_input(self, problem_input: ProblemInput):
+        self.orders = problem_input.orders
+        self.aisles = problem_input.aisles
+        self.wave_size_lb = problem_input.lb
+        self.wave_size_ub = problem_input.ub
 
     def read_output(self, output_file_path):
         with open(output_file_path, "r") as file:
