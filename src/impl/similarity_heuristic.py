@@ -2,6 +2,7 @@ from models.solver import Solver
 
 from impl.utils.greedy_aisle_select import greedy_aisle_select
 from impl.utils.similarity import similarity
+from impl.utils.shuffled_indexes import shuffled_indexes
 
 
 class SimilarityHeuristic(Solver):
@@ -13,11 +14,10 @@ class SimilarityHeuristic(Solver):
         return True
 
     def solve(self) -> tuple[list[int], list[int]]:
-        seed = self.config["seed"]
+
         reverse = self.config["reverse"]
 
-        if not seed:
-            raise ValueError("Seed not provided in config for SimilarHeuristic")
+        seed = shuffled_indexes(self.n_orders)
 
         stock: dict[int, int] = {}
 

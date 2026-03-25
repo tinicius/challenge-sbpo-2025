@@ -2,15 +2,15 @@ from typing import Callable
 from impl.simple_heuristic import SimpleHeuristic
 from impl.similarity_heuristic import SimilarityHeuristic
 from impl.aisle_first import AisleFirstHeuristic
+import numpy as np
+import statistics
+
 
 import time
 
-import random
 
-
-from models.solver import Solver, ProblemInput
+from models.solver import Solver
 import os
-from sys import argv
 
 from utils.generate_output import generate_output
 from utils.read_input import read_input
@@ -24,19 +24,14 @@ class RunConfig:
         self,
         name: str,
         solver_class: type[Solver],
-        get_runs: Callable[[ProblemInput], list[dict]],
+        configs: dict,
     ):
         self.name = name
         self.solver_class = solver_class
-        self.get_runs = get_runs
+        self.configs = configs
 
 
-def solve(output_file, solver):
-    solution = solver.solve()
-
-    generate_output(
-        output_file, len(solution[0]), len(solution[1]), solution[0], solution[1]
-    )
+RUNS = 30
 
 
 def process(solver_config: RunConfig, input_folder: str, output_folder: str):
@@ -53,33 +48,26 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
             continue
 
         input_file = os.path.join(input_folder, filename)
-        output_file = os.path.join(output_folder, filename)
 
         wave_order_picking = WaveOrderPicking()
         wave_order_picking.read_input(input_file)
 
         input = read_input(input_file)
 
-        objectives_sum = 0
-        number_feasibles_solutions = 0
+        values = []
 
-        run = 0
+        for run in range(RUNS):
 
-        start = time.perf_counter()
+            solver = solver_config.solver_class(input, solver_config.configs)
 
-        for run_config in solver_config.get_runs(input):
+            start = time.perf_counter()
 
-            total_runs = len(solver_config.get_runs(input))
-
-            solver = solver_config.solver_class(input, run_config)
-
-            solve(output_file, solver)
+            solution = solver.solve()
 
             end = time.perf_counter()
 
-            selected_orders, visited_aisles = wave_order_picking.read_output(
-                output_file
-            )
+            selected_orders = solution[0]
+            visited_aisles = solution[1]
 
             is_feasible = wave_order_picking.is_solution_feasible(
                 selected_orders, visited_aisles
@@ -90,23 +78,46 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
             )
 
             if is_feasible:
-                objectives_sum += objective_value
-                number_feasibles_solutions += 1
+                values.append(objective_value)
 
             print(
-                f"{solver_config.name} - {filename} - {run + 1}/{total_runs} - Time: {end - start:.2f}s - Objective: {objective_value} - Feasible: {is_feasible}",
+                f"{solver_config.name} - {filename} - {run + 1}/{RUNS} - Time: {end - start:.2f}s - Objective: {objective_value} - Feasible: {is_feasible}",
                 flush=True,
             )
 
             run += 1
 
-        avg = (
-            objectives_sum / number_feasibles_solutions
-            if number_feasibles_solutions > 0
-            else -1
-        )
+        if not len(values) > 0:
+            continue
 
-        results.append((dataset_name, filename, avg))
+        arr_np = np.array(values)
+
+        mean = np.mean(arr_np)
+        median = np.median(arr_np)
+
+        mode = statistics.mode(values)
+
+        minimum = np.min(arr_np)
+        maximum = np.max(arr_np)
+
+        variance = np.var(arr_np)
+        std_dev = np.std(arr_np)
+        coef_variation = std_dev / mean
+
+        results.append(
+            (
+                dataset_name,
+                filename,
+                mean,
+                median,
+                mode,
+                minimum,
+                maximum,
+                variance,
+                std_dev,
+                coef_variation,
+            )
+        )
 
     csv_path = os.path.join(
         objectives_dir,
@@ -115,72 +126,23 @@ def process(solver_config: RunConfig, input_folder: str, output_folder: str):
 
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["dataset", "instance", "best_objective"])
+        writer.writerow(
+            [
+                "dataset",
+                "instance",
+                "mean",
+                "median",
+                "mode",
+                "min",
+                "max",
+                "variance",
+                "std_dev",
+                "coef_variation",
+            ]
+        )
         writer.writerows(results)
 
     print(f"\nResults written to {csv_path}")
-
-
-runs = 5
-
-
-def simple_heuristic_runs(input: ProblemInput) -> list[dict]:
-
-    base = list(range(0, input.nOrders))
-
-    configs = []
-
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    for seed in seeds:
-        configs.append({"seed": seed})
-
-    return configs
-
-
-def similar_heuristic_runs(input: ProblemInput) -> list[dict]:
-
-    base = list(range(0, input.nOrders))
-
-    configs = []
-
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    for seed in seeds:
-        configs.append({"seed": seed, "reverse": True})
-
-    return configs
-
-
-def diff_heuristic_runs(input: ProblemInput) -> list[dict]:
-
-    base = list(range(0, input.nOrders))
-
-    configs = []
-
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    for seed in seeds:
-        configs.append({"seed": seed, "reverse": False})
-
-    return configs
-
-
-def aisle_first_heuristic_runs(input: ProblemInput) -> list[dict]:
-
-    base = list(range(0, input.nOrders))
-
-    configs = []
-
-    seeds = [random.sample(base, len(base)) for _ in range(runs)]
-
-    # for seed in seeds:
-    #     configs.append({"seed": seed, "reverse": False})
-
-    for _ in range(runs):
-        configs.append({})
-
-    return configs
 
 
 if __name__ == "__main__":
@@ -192,22 +154,21 @@ if __name__ == "__main__":
         RunConfig(
             "simple",
             SimpleHeuristic,
-            simple_heuristic_runs,
+            {},
         ),
-        # RunConfig(
-        #     "similar",
-        #     SimilarityHeuristic,
-        #     similar_heuristic_runs,
-        # ),
-        # RunConfig(
-        #     "diff",
-        #     SimilarityHeuristic,
-        #     diff_heuristic_runs,
-        # ),
         RunConfig(
-            "aisle_first",
-            AisleFirstHeuristic,
-            aisle_first_heuristic_runs,
+            "similar",
+            SimilarityHeuristic,
+            {
+                "reverse": True,
+            },
+        ),
+        RunConfig(
+            "diff",
+            SimilarityHeuristic,
+            {
+                "reverse": False,
+            },
         ),
     ]
 

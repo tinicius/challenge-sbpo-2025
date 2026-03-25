@@ -1,6 +1,7 @@
 from models.solver import Solver
 from impl.utils.greedy_aisle_select import greedy_aisle_select
 from impl.utils.table import write_dict_table_to_file
+from impl.utils.shuffled_indexes import shuffled_indexes
 
 
 class SimpleHeuristic(Solver):
@@ -13,10 +14,7 @@ class SimpleHeuristic(Solver):
 
     def solve(self) -> tuple[list[int], list[int]]:
 
-        seed = self.config["seed"]
-
-        if not seed:
-            raise ValueError("Seed not provided in config for SimpleHeuristic")
+        seed = shuffled_indexes(self.n_orders)
 
         stock: dict[int, int] = {}
 
