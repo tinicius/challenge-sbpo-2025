@@ -19,11 +19,17 @@ def print_table(nItems, nOrders, orders):
     if not data:
         return
 
-    col_widths = [max(len(str(row[c])) for row in data) for c in range(len(data[0]))]
+    n_cols = max((len(row) for row in data), default=0)
+    if n_cols == 0:
+        return
+    col_widths = [
+        max(len(str(row[c])) if c < len(row) else 0 for row in data) for c in range(n_cols)
+    ]
 
     for row_idx, row in enumerate(data):
         rendered = " | ".join(
-            str(cell).ljust(col_widths[col_idx]) for col_idx, cell in enumerate(row)
+            (str(row[col_idx]) if col_idx < len(row) else "").ljust(col_widths[col_idx])
+            for col_idx in range(n_cols)
         )
         print(rendered)
         if row_idx == 0:
