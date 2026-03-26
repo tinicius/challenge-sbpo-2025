@@ -27,7 +27,7 @@ class Solver(ABC):
     def __init__(
         self,
         input: ProblemInput,
-        config: dict = {},
+        config: dict | None = None,
     ):
 
         input_copy = deepcopy(input)
@@ -38,7 +38,7 @@ class Solver(ABC):
         self.aisles = input_copy.aisles
         self.lb = input_copy.lb
         self.ub = input_copy.ub
-        self.config = config
+        self.config = config or {}
 
     @abstractmethod
     def solve(self) -> tuple[list[int], list[int]]:

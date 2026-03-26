@@ -36,11 +36,13 @@ RUNS = 30
 
 def _build_stats(values: list[float]):
     arr_np = np.array(values)
+    modes = statistics.multimode(values)
+    mode_value = modes[0] if modes else None
 
     return {
         "mean": np.mean(arr_np),
         "median": np.median(arr_np),
-        "mode": statistics.mode(values),
+        "mode": mode_value,
         "min": np.min(arr_np),
         "max": np.max(arr_np),
         "variance": np.var(arr_np),

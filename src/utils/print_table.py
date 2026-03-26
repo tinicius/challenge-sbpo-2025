@@ -16,4 +16,12 @@ def print_table(nItems, nOrders, orders):
 
         data.append(row)
 
-    print(tabulate(data, headers="firstrow", tablefmt="grid"))
+    col_widths = [max(len(str(row[c])) for row in data) for c in range(len(data[0]))]
+
+    for row_idx, row in enumerate(data):
+        rendered = " | ".join(
+            str(cell).ljust(col_widths[col_idx]) for col_idx, cell in enumerate(row)
+        )
+        print(rendered)
+        if row_idx == 0:
+            print("-+-".join("-" * width for width in col_widths))
