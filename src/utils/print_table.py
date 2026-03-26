@@ -16,6 +16,9 @@ def print_table(nItems, nOrders, orders):
 
         data.append(row)
 
+    if not data:
+        return
+
     col_widths = [max(len(str(row[c])) for row in data) for c in range(len(data[0]))]
 
     for row_idx, row in enumerate(data):

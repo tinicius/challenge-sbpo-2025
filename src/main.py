@@ -35,9 +35,17 @@ RUNS = 30
 
 
 def _build_stats(values: list[float]):
+    """Build summary statistics for a non-empty numeric list.
+
+    For multimodal inputs, the smallest mode is selected to keep the result
+    deterministic.
+    """
+    if not values:
+        raise ValueError("values must be a non-empty list")
+
     arr_np = np.array(values)
     modes = statistics.multimode(values)
-    mode_value = modes[0] if modes else None
+    mode_value = min(modes)
 
     return {
         "mean": np.mean(arr_np),
