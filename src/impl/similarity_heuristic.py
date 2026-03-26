@@ -1,5 +1,6 @@
 from models.solver import Solver
 
+from impl.utils.multi_greedy_aisle_select import multi_greedy_aisle_select
 from impl.utils.greedy_aisle_select import greedy_aisle_select
 from impl.utils.similarity import similarity
 from impl.utils.shuffled_indexes import shuffled_indexes
@@ -16,6 +17,13 @@ class SimilarityHeuristic(Solver):
     def solve(self) -> tuple[list[int], list[int]]:
 
         reverse = self.config["reverse"]
+
+        greedy = self.config["greedy"]
+
+        if not greedy:
+            raise ValueError(
+                "Greedy flag not provided in config for SimilarityHeuristic"
+            )
 
         seed = shuffled_indexes(self.n_orders)
 
@@ -61,6 +69,11 @@ class SimilarityHeuristic(Solver):
             for idx, qnt in self.orders[idx].items():
                 demand[idx] = demand.get(idx, 0) + qnt
 
-        visited_aisles = greedy_aisle_select(demand, self.aisles)
+        visited_aisles = []
+
+        if greedy == "multi":
+            visited_aisles = multi_greedy_aisle_select(demand, self.aisles)
+        else:
+            visited_aisles = greedy_aisle_select(demand, self.aisles)
 
         return selected_orders, visited_aisles

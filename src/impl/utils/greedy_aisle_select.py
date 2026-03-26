@@ -1,43 +1,30 @@
 def greedy_aisle_select(
     demand: dict[int, int], aisles: list[dict[int, int]]
 ) -> list[int]:
-    # 1. Prevent side-effects by creating a local copy of unfulfilled demand
-    remaining_demand = {item: qty for item, qty in demand.items() if qty > 0}
+    def aisle_score(aisle: dict[int, int]) -> int:
+        return sum(min(qty, aisle.get(item, 0)) for item, qty in demand.items())
+
+    sorted_aisles = sorted(
+        range(len(aisles)),
+        key=lambda idx: aisle_score(aisles[idx]),
+        reverse=True,  # best aisles first
+    )
 
     selected_aisles: list[int] = []
-    available_aisles = set(range(len(aisles)))
 
-    # Loop dynamically until demand is met or we run out of useful aisles
-    while remaining_demand and available_aisles:
-        best_aisle_idx = -1
-        max_score = 0
+    for aisle_idx in sorted_aisles:
+        aisle = aisles[aisle_idx]
 
-        # 2. Dynamic scoring: Find the aisle that satisfies the MOST REMAINING demand
-        for idx in available_aisles:
-            aisle = aisles[idx]
+        if aisle_score(aisle) == 0:
+            continue
 
-            # 3. Efficiency: Iterate through the aisle's items, not the whole demand
-            score = sum(
-                min(remaining_demand.get(item, 0), qty) for item, qty in aisle.items()
-            )
+        selected_aisles.append(aisle_idx)  # append once per aisle
 
-            if score > max_score:
-                max_score = score
-                best_aisle_idx = idx
+        for item, needed in demand.items():
+            if aisle.get(item, 0) > 0:
+                demand[item] = max(0, needed - aisle[item])
 
-        # If the best aisle provides 0 items we need, no other aisle can help us
-        if max_score == 0:
+        if sum(demand.values()) == 0:
             break
-
-        selected_aisles.append(best_aisle_idx)
-        available_aisles.remove(best_aisle_idx)
-
-        # 4. Update demand and remove items that hit 0 so the dictionary shrinks
-        best_aisle = aisles[best_aisle_idx]
-        for item, qty in best_aisle.items():
-            if item in remaining_demand:
-                remaining_demand[item] -= qty
-                if remaining_demand[item] <= 0:
-                    del remaining_demand[item]
 
     return selected_aisles

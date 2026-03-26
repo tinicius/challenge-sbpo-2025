@@ -31,7 +31,7 @@ class RunConfig:
         self.configs = configs
 
 
-RUNS = 5
+RUNS = 30
 
 
 def _build_stats(values: list[float]):
@@ -210,7 +210,7 @@ def process(
 
     csv_path = os.path.join(
         objectives_dir,
-        f"{solver_config.name}_{dataset_name}_{solver_config.name}.csv",
+        f"{solver_config.name}_{dataset_name}.csv",
     )
 
     with open(csv_path, "w", newline="") as f:
@@ -266,13 +266,31 @@ if __name__ == "__main__":
         RunConfig(
             "simple",
             SimpleHeuristic,
-            {},
+            {
+                "greedy": "simple",
+            },
+        ),
+        RunConfig(
+            "simple_multi",
+            SimpleHeuristic,
+            {
+                "greedy": "multi",
+            },
         ),
         RunConfig(
             "similar",
             SimilarityHeuristic,
             {
                 "reverse": True,
+                "greedy": "simple",
+            },
+        ),
+        RunConfig(
+            "similar_multi",
+            SimilarityHeuristic,
+            {
+                "reverse": True,
+                "greedy": "multi",
             },
         ),
         RunConfig(
@@ -280,6 +298,15 @@ if __name__ == "__main__":
             SimilarityHeuristic,
             {
                 "reverse": False,
+                "greedy": "simple",
+            },
+        ),
+        RunConfig(
+            "diff_multi",
+            SimilarityHeuristic,
+            {
+                "reverse": False,
+                "greedy": "multi",
             },
         ),
     ]

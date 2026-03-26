@@ -1,4 +1,5 @@
 from models.solver import Solver
+from impl.utils.multi_greedy_aisle_select import multi_greedy_aisle_select
 from impl.utils.greedy_aisle_select import greedy_aisle_select
 from impl.utils.table import write_dict_table_to_file
 from impl.utils.shuffled_indexes import shuffled_indexes
@@ -15,6 +16,13 @@ class SimpleHeuristic(Solver):
     def solve(self) -> tuple[list[int], list[int]]:
 
         seed = shuffled_indexes(self.n_orders)
+
+        greedy = self.config["greedy"]
+
+        if not greedy:
+            raise ValueError(
+                "Greedy flag not provided in config for SimilarityHeuristic"
+            )
 
         stock: dict[int, int] = {}
 
@@ -48,7 +56,12 @@ class SimpleHeuristic(Solver):
             for item, qty in self.orders[order_idx].items():
                 demand[item] = demand.get(item, 0) + qty
 
-        visited_aisles = greedy_aisle_select(demand, self.aisles)
+        visited_aisles = []
+
+        if greedy == "multi":
+            visited_aisles = multi_greedy_aisle_select(demand, self.aisles)
+        else:
+            visited_aisles = greedy_aisle_select(demand, self.aisles)
 
         # selected_stock: dict[int, int] = {}
 
