@@ -2,9 +2,12 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from impl.simple_heuristic import SimpleHeuristic
 from impl.similarity_heuristic import SimilarityHeuristic
 from impl.aisle_first import AisleFirstHeuristic
+from impl.max_density_order_insertion import MaxDensityOrderInsertionHeuristic
 from impl.greedy_order_similarity_aggregation import (
     GreedyOrderSimilarityAggregationHeuristic,
 )
+from impl.greedy_aisle_density import GreedyAisleDensityHeuristic
+from impl.aisle_cluster_expansion import AisleClusterExpansion
 import numpy as np
 import statistics
 
@@ -266,13 +269,13 @@ if __name__ == "__main__":
     instances = preload_instances(input_folder)
 
     solver_configs = [
-        RunConfig(
-            "simple",
-            SimpleHeuristic,
-            {
-                "greedy": "simple",
-            },
-        ),
+        # RunConfig(
+        #     "simple",
+        #     SimpleHeuristic,
+        #     {
+        #         "greedy": "simple",
+        #     },
+        # ),
         # RunConfig(
         #     "simple_multi",
         #     SimpleHeuristic,
@@ -312,10 +315,30 @@ if __name__ == "__main__":
         #         "greedy": "multi",
         #     },
         # ),
+        # RunConfig(
+        #     "similarity_aggregation_multi",
+        #     GreedyOrderSimilarityAggregationHeuristic,
+        #     {},
+        # ),
         RunConfig(
-            "similarity_aggregation_multi",
-            GreedyOrderSimilarityAggregationHeuristic,
+            "max_density_insert",
+            MaxDensityOrderInsertionHeuristic,
             {},
+        ),
+        RunConfig(
+            "greedy_aisle_density",
+            GreedyAisleDensityHeuristic,
+            {
+                "initial_k": 1,
+            },
+        ),
+        RunConfig(
+            "aisle_cluster_expansion",
+            AisleClusterExpansion,
+            {
+                "attempts": 20,
+                "max_added_aisles": 20,
+            },
         ),
     ]
 
