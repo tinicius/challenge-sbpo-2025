@@ -320,11 +320,11 @@ if __name__ == "__main__":
         #     GreedyOrderSimilarityAggregationHeuristic,
         #     {},
         # ),
-        RunConfig(
-            "max_density_insert",
-            MaxDensityOrderInsertionHeuristic,
-            {},
-        ),
+        # RunConfig(
+        #     "max_density_insert",
+        #     MaxDensityOrderInsertionHeuristic,
+        #     {},
+        # ),
         RunConfig(
             "greedy_aisle_density",
             GreedyAisleDensityHeuristic,
