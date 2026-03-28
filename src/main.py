@@ -2,6 +2,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from impl.simple_heuristic import SimpleHeuristic
 from impl.similarity_heuristic import SimilarityHeuristic
 from impl.aisle_first import AisleFirstHeuristic
+from impl.local_search import LocalSearchHeuristic
+from impl.simulated_annealing import SimulatedAnnealingHeuristic
 import numpy as np
 import statistics
 
@@ -307,6 +309,24 @@ if __name__ == "__main__":
             {
                 "reverse": False,
                 "greedy": "multi",
+            },
+        ),
+        RunConfig(
+            "local_search",
+            LocalSearchHeuristic,
+            {
+                "iterations": 10,
+                "max_no_improve": 5,
+            },
+        ),
+        RunConfig(
+            "simulated_annealing",
+            SimulatedAnnealingHeuristic,
+            {
+                "T_init": 5.0,
+                "T_min": 0.001,
+                "alpha": 0.998,
+                "max_iter": 5000,
             },
         ),
     ]
