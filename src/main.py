@@ -2,6 +2,9 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from impl.simple_heuristic import SimpleHeuristic
 from impl.similarity_heuristic import SimilarityHeuristic
 from impl.aisle_first import AisleFirstHeuristic
+from impl.greedy_order_similarity_aggregation import (
+    GreedyOrderSimilarityAggregationHeuristic,
+)
 import numpy as np
 import statistics
 
@@ -270,47 +273,55 @@ if __name__ == "__main__":
                 "greedy": "simple",
             },
         ),
+        # RunConfig(
+        #     "simple_multi",
+        #     SimpleHeuristic,
+        #     {
+        #         "greedy": "multi",
+        #     },
+        # ),
+        # RunConfig(
+        #     "similar",
+        #     SimilarityHeuristic,
+        #     {
+        #         "reverse": True,
+        #         "greedy": "simple",
+        #     },
+        # ),
+        # RunConfig(
+        #     "similar_multi",
+        #     SimilarityHeuristic,
+        #     {
+        #         "reverse": True,
+        #         "greedy": "multi",
+        #     },
+        # ),
+        # RunConfig(
+        #     "diff",
+        #     SimilarityHeuristic,
+        #     {
+        #         "reverse": False,
+        #         "greedy": "simple",
+        #     },
+        # ),
+        # RunConfig(
+        #     "diff_multi",
+        #     SimilarityHeuristic,
+        #     {
+        #         "reverse": False,
+        #         "greedy": "multi",
+        #     },
+        # ),
         RunConfig(
-            "simple_multi",
-            SimpleHeuristic,
-            {
-                "greedy": "multi",
-            },
-        ),
-        RunConfig(
-            "similar",
-            SimilarityHeuristic,
-            {
-                "reverse": True,
-                "greedy": "simple",
-            },
-        ),
-        RunConfig(
-            "similar_multi",
-            SimilarityHeuristic,
-            {
-                "reverse": True,
-                "greedy": "multi",
-            },
-        ),
-        RunConfig(
-            "diff",
-            SimilarityHeuristic,
-            {
-                "reverse": False,
-                "greedy": "simple",
-            },
-        ),
-        RunConfig(
-            "diff_multi",
-            SimilarityHeuristic,
-            {
-                "reverse": False,
-                "greedy": "multi",
-            },
+            "similarity_aggregation_multi",
+            GreedyOrderSimilarityAggregationHeuristic,
+            {},
         ),
     ]
 
     for solver_config in solver_configs:
-        print(f"Running solver: {solver_config.name}")
+        print(
+            f"Running solver: {solver_config.name}, {time.strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+
         process(solver_config, input_folder, output_folder, instances, max_workers)
