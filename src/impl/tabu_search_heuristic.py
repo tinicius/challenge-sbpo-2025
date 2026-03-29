@@ -22,6 +22,7 @@ class RobustOriginalTS(OriginalTS):
 
         if not list_candidates:
             random_agent = self.generate_agent()
+            random_agent.target = self.get_target(random_agent.solution)
             self.x = random_agent.solution
             self.tabu_list.append(tuple(self.x))
             self.pop.append(random_agent)

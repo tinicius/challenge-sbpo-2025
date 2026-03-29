@@ -134,10 +134,13 @@ class MealpyBinaryMetaheuristicSolver(Solver):
             "obj_func": self._objective,
             "log_to": "None",
         }
-        best_agent = model.solve(problem, seed=seed)
+        if seed is None:
+            best_agent = model.solve(problem)
+        else:
+            best_agent = model.solve(problem, seed=seed)
 
         candidate_solutions = [best_agent.solution]
-        if getattr(model, "pop", None):
+        if hasattr(model, "pop") and model.pop is not None:
             candidate_solutions.extend(agent.solution for agent in model.pop)
 
         best = self._best_feasible_from_solutions(candidate_solutions)
