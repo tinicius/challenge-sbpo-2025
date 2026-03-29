@@ -1,4 +1,4 @@
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from impl.simple_heuristic import SimpleHeuristic
 from impl.similarity_heuristic import SimilarityHeuristic
 from impl.aisle_first import AisleFirstHeuristic
@@ -8,6 +8,12 @@ from impl.greedy_order_similarity_aggregation import (
 )
 from impl.greedy_aisle_density import GreedyAisleDensityHeuristic
 from impl.aisle_cluster_expansion import AisleClusterExpansion
+from impl.ping_pong_alternating import PingPongAlternatingHeuristic
+from impl.grasp_heuristic import GRASPHeuristic
+from impl.genetic_algorithm_heuristic import GeneticAlgorithmHeuristic
+from impl.ant_colony_optimization import AntColonyOptimizationHeuristic
+from impl.tabu_search_heuristic import TabuSearchHeuristic
+from impl.simulated_annealing_heuristic import SimulatedAnnealingHeuristic
 import numpy as np
 import statistics
 
@@ -17,6 +23,7 @@ import time
 
 from models.solver import Solver
 import os
+import signal
 
 from utils.generate_output import generate_output
 from utils.read_input import read_input
@@ -37,7 +44,28 @@ class RunConfig:
         self.configs = configs
 
 
-RUNS = 30
+RUNS = 2
+SOLVER_TIME_LIMIT_SECONDS = 5.0
+
+
+class SolverTimeoutError(Exception):
+    pass
+
+
+def _on_solver_timeout(_signum, _frame):
+    raise SolverTimeoutError()
+
+
+def _solve_with_timeout(solver):
+    previous_handler = signal.getsignal(signal.SIGALRM)
+    signal.signal(signal.SIGALRM, _on_solver_timeout)
+    signal.setitimer(signal.ITIMER_REAL, SOLVER_TIME_LIMIT_SECONDS)
+
+    try:
+        return solver.solve()
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)
 
 
 def _build_stats(values: list[float]):
@@ -69,15 +97,24 @@ def _compute_instance_stats(
     aisle_count_values = []
     exec_time_values = []
     total_elapsed = 0.0
+    timed_out_runs = 0
 
     for _ in range(RUNS):
         solver = solver_class(problem_input, solver_configs)
 
         start = time.perf_counter()
-        selected_orders, visited_aisles = solver.solve()
-        end = time.perf_counter()
+        try:
+            selected_orders, visited_aisles = _solve_with_timeout(solver)
+        except SolverTimeoutError:
+            timed_out_runs += 1
+            elapsed = min(
+                time.perf_counter() - start,
+                SOLVER_TIME_LIMIT_SECONDS,
+            )
+            total_elapsed += elapsed
+            continue
 
-        elapsed = end - start
+        elapsed = time.perf_counter() - start
         total_elapsed += elapsed
 
         is_feasible = wave_order_picking.is_solution_feasible(
@@ -102,7 +139,8 @@ def _compute_instance_stats(
             "filename": filename,
             "row": None,
             "summary": (
-                f"{filename} - feasible runs: 0/{RUNS} - total solve time: {total_elapsed:.2f}s"
+                f"{filename} - feasible runs: 0/{RUNS} - timeouts: {timed_out_runs}/{RUNS} - "
+                f"total solve time: {total_elapsed:.2f}s"
             ),
         }
 
@@ -146,6 +184,7 @@ def _compute_instance_stats(
 
     summary = (
         f"{filename} - feasible runs: {len(objective_values)}/{RUNS} - "
+        f"timeouts: {timed_out_runs}/{RUNS} - "
         f"objective mean: {objective_stats['mean']:.4f} - "
         f"items mean: {item_count_stats['mean']:.2f} - "
         f"aisles mean: {aisle_count_stats['mean']:.2f} - "
@@ -260,11 +299,34 @@ def process(
     print(f"\nResults written to {csv_path}")
 
 
+def run_solver_job(
+    solver_config: RunConfig,
+    input_folder: str,
+    output_folder: str,
+    instances,
+    max_workers: int,
+):
+    start = time.perf_counter()
+    process(
+        solver_config=solver_config,
+        input_folder=input_folder,
+        output_folder=output_folder,
+        instances=instances,
+        max_workers=max_workers,
+    )
+    elapsed = time.perf_counter() - start
+
+    return {
+        "name": solver_config.name,
+        "elapsed": elapsed,
+    }
+
+
 if __name__ == "__main__":
 
     input_folder = "datasets/a"
     output_folder = "output"
-    max_workers = max(1, (os.cpu_count() or 1) - 1)
+    total_cpu_workers = max(1, (os.cpu_count() or 1) - 1)
 
     instances = preload_instances(input_folder)
 
@@ -320,31 +382,142 @@ if __name__ == "__main__":
         #     GreedyOrderSimilarityAggregationHeuristic,
         #     {},
         # ),
+        RunConfig(
+            "ga_balanced",
+            GeneticAlgorithmHeuristic,
+            {
+                "population_size": 80,
+                "generations": 120,
+                "crossover_rate": 0.85,
+                "mutation_rate": 0.02,
+                "tournament_size": 3,
+                "elite_count": 4,
+                "penalty_scale": 3.0,
+                "penalty_lb": 1.0,
+                "penalty_ub": 1.0,
+                "penalty_stock": 2.0,
+                "repair_upper_bound": True,
+                "feasible_init_ratio": 0.6,
+            },
+        ),
+        RunConfig(
+            "aco_pairwise",
+            AntColonyOptimizationHeuristic,
+            {
+                "n_ants": 30,
+                "n_iterations": 60,
+                "alpha": 1.1,
+                "beta": 2.2,
+                "evaporation": 0.15,
+                "q_deposit": 1.0,
+                "initial_pheromone": 1.0,
+                "candidate_list_size": 25,
+                "stop_after_lb_prob": 0.2,
+                "elitist_weight": 2.0,
+            },
+        ),
+        RunConfig(
+            "tabu_search",
+            TabuSearchHeuristic,
+            {
+                "max_iterations": 180,
+                "no_improve_limit": 60,
+                "neighborhood_samples": 40,
+                "tabu_tenure_orders": 10,
+                "tabu_tenure_aisles": 8,
+            },
+        ),
+        RunConfig(
+            "sa_basic",
+            SimulatedAnnealingHeuristic,
+            {
+                "max_iterations": 5000,
+                "max_time_seconds": 1.5,
+                "initial_temp": 2.5,
+                "cooling_rate": 0.9975,
+                "min_temp": 1e-4,
+                "neighbor_tries": 40,
+                "initial_attempts": 24,
+            },
+        ),
         # RunConfig(
         #     "max_density_insert",
         #     MaxDensityOrderInsertionHeuristic,
         #     {},
         # ),
-        RunConfig(
-            "greedy_aisle_density",
-            GreedyAisleDensityHeuristic,
-            {
-                "initial_k": 1,
-            },
-        ),
-        RunConfig(
-            "aisle_cluster_expansion",
-            AisleClusterExpansion,
-            {
-                "attempts": 20,
-                "max_added_aisles": 20,
-            },
-        ),
+        # RunConfig(
+        #     "greedy_aisle_density",
+        #     GreedyAisleDensityHeuristic,
+        #     {
+        #         "initial_k": 1,
+        #     },
+        # ),
+        # RunConfig(
+        #     "aisle_cluster_expansion",
+        #     AisleClusterExpansion,
+        #     {
+        #         "attempts": 20,
+        #         "max_added_aisles": 20,
+        #     },
+        # ),
+        # RunConfig(
+        #     "ping_pong_alternating",
+        #     PingPongAlternatingHeuristic,
+        #     {
+        #         "phase1_mode": "both",
+        #         "max_iterations": 25,
+        #         "min_improvement_delta": 1e-5,
+        #     },
+        # ),
+        # RunConfig(
+        #     "grasp",
+        #     GRASPHeuristic,
+        #     {
+        #         "max_iterations": 50,
+        #         "alpha": 0.3,
+        #         "local_search_no_improve": 8,
+        #         "construction_stagnation": 4,
+        #         "max_order_swap_checks": 20000,
+        #         "max_aisle_swap_checks": 5000,
+        #     },
+        # ),
     ]
 
-    for solver_config in solver_configs:
-        print(
-            f"Running solver: {solver_config.name}, {time.strftime('%Y-%m-%d %H:%M:%S')}"
-        )
+    if not solver_configs:
+        raise ValueError("No solver configured in solver_configs")
 
-        process(solver_config, input_folder, output_folder, instances, max_workers)
+    solver_parallelism = min(len(solver_configs), total_cpu_workers)
+    workers_per_solver = max(1, total_cpu_workers // solver_parallelism)
+
+    print(
+        f"Running {len(solver_configs)} solver(s) in parallel (max {solver_parallelism} at a time) "
+        f"with up to {workers_per_solver} process worker(s) per solver"
+    )
+
+    with ThreadPoolExecutor(max_workers=solver_parallelism) as executor:
+        future_to_solver = {}
+
+        for solver_config in solver_configs:
+            print(
+                f"Scheduling solver: {solver_config.name}, {time.strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+            future = executor.submit(
+                run_solver_job,
+                solver_config,
+                input_folder,
+                output_folder,
+                instances,
+                workers_per_solver,
+            )
+            future_to_solver[future] = solver_config.name
+
+        for future in as_completed(future_to_solver):
+            solver_name = future_to_solver[future]
+            try:
+                result = future.result()
+                print(
+                    f"Finished solver: {result['name']} in {result['elapsed']:.2f}s, "
+                    f"{time.strftime('%Y-%m-%d %H:%M:%S')}"
+                )
+            except Exception as exc:
+                print(f"Solver failed: {solver_name} with error: {exc}")
