@@ -1,4 +1,4 @@
-dataset,instance,best_objective
+dataset,instance,objective_mean,objective_median,objective_mode,objective_min,objective_max,objective_variance,objective_std_dev,items_mean,items_median,items_mode,items_min,items_max,items_variance,items_std_dev,aisles_mean,aisles_median,aisles_mode,aisles_min,aisles_max,aisles_variance,aisles_std_dev,exec_time_mean,exec_time_median,exec_time_mode,exec_time_min,exec_time_max,exec_time_variance,exec_time_std_dev
 a,instance_0001.txt,15.0
 a,instance_0002.txt,2.0
 a,instance_0003.txt,12.0
