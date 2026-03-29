@@ -16,6 +16,7 @@ from impl.genetic_algorithm_heuristic import GeneticAlgorithmHeuristic
 from impl.ant_colony_optimization import AntColonyOptimizationHeuristic
 from impl.tabu_search_heuristic import TabuSearchHeuristic
 from impl.simulated_annealing_heuristic import SimulatedAnnealingHeuristic
+from impl.dinkelbach_milp import DinkelbachMILPSolver
 import numpy as np
 import statistics
 
@@ -384,80 +385,90 @@ if __name__ == "__main__":
         #     GreedyOrderSimilarityAggregationHeuristic,
         #     {},
         # ),
+        # RunConfig(
+        #     "ga_balanced",
+        #     GeneticAlgorithmHeuristic,
+        #     {
+        #         "population_size": 80,
+        #         "generations": 120,
+        #         "crossover_rate": 0.85,
+        #         "mutation_rate": 0.02,
+        #         "tournament_size": 3,
+        #         "elite_count": 4,
+        #         "penalty_scale": 3.0,
+        #         "penalty_lb": 1.0,
+        #         "penalty_ub": 1.0,
+        #         "penalty_stock": 2.0,
+        #         "repair_upper_bound": True,
+        #         "feasible_init_ratio": 0.6,
+        #     },
+        # ),
+        # RunConfig(
+        #     "aco_pairwise",
+        #     AntColonyOptimizationHeuristic,
+        #     {
+        #         "n_ants": 30,
+        #         "n_iterations": 60,
+        #         "alpha": 1.1,
+        #         "beta": 2.2,
+        #         "evaporation": 0.15,
+        #         "q_deposit": 1.0,
+        #         "initial_pheromone": 1.0,
+        #         "candidate_list_size": 25,
+        #         "stop_after_lb_prob": 0.2,
+        #         "elitist_weight": 2.0,
+        #     },
+        # ),
+        # RunConfig(
+        #     "tabu_search",
+        #     TabuSearchHeuristic,
+        #     {
+        #         "max_iterations": 180,
+        #         "no_improve_limit": 60,
+        #         "neighborhood_samples": 40,
+        #         "tabu_tenure_orders": 10,
+        #         "tabu_tenure_aisles": 8,
+        #     },
+        # ),
+        # RunConfig(
+        #     "sa_basic",
+        #     SimulatedAnnealingHeuristic,
+        #     {
+        #         "max_iterations": 5000,
+        #         "max_time_seconds": 1.5,
+        #         "initial_temp": 2.5,
+        #         "cooling_rate": 0.9975,
+        #         "min_temp": 1e-4,
+        #         "neighbor_tries": 40,
+        #         "initial_attempts": 24,
+        #     },
+        # ),
+        # RunConfig(
+        #     "local_search",
+        #     LocalSearchHeuristic,
+        #     {
+        #         "iterations": 10,
+        #         "max_no_improve": 5,
+        #     },
+        # ),
+        # RunConfig(
+        #     "simulated_annealing",
+        #     SimulatedAnnealingHeuristic,
+        #     {
+        #         "T_init": 5.0,
+        #         "T_min": 0.001,
+        #         "alpha": 0.998,
+        #         "max_iter": 5000,
+        #     },
+        # ),
         RunConfig(
-            "ga_balanced",
-            GeneticAlgorithmHeuristic,
+            "dinkelbach_milp",
+            DinkelbachMILPSolver,
             {
-                "population_size": 80,
-                "generations": 120,
-                "crossover_rate": 0.85,
-                "mutation_rate": 0.02,
-                "tournament_size": 3,
-                "elite_count": 4,
-                "penalty_scale": 3.0,
-                "penalty_lb": 1.0,
-                "penalty_ub": 1.0,
-                "penalty_stock": 2.0,
-                "repair_upper_bound": True,
-                "feasible_init_ratio": 0.6,
-            },
-        ),
-        RunConfig(
-            "aco_pairwise",
-            AntColonyOptimizationHeuristic,
-            {
-                "n_ants": 30,
-                "n_iterations": 60,
-                "alpha": 1.1,
-                "beta": 2.2,
-                "evaporation": 0.15,
-                "q_deposit": 1.0,
-                "initial_pheromone": 1.0,
-                "candidate_list_size": 25,
-                "stop_after_lb_prob": 0.2,
-                "elitist_weight": 2.0,
-            },
-        ),
-        RunConfig(
-            "tabu_search",
-            TabuSearchHeuristic,
-            {
-                "max_iterations": 180,
-                "no_improve_limit": 60,
-                "neighborhood_samples": 40,
-                "tabu_tenure_orders": 10,
-                "tabu_tenure_aisles": 8,
-            },
-        ),
-        RunConfig(
-            "sa_basic",
-            SimulatedAnnealingHeuristic,
-            {
-                "max_iterations": 5000,
-                "max_time_seconds": 1.5,
-                "initial_temp": 2.5,
-                "cooling_rate": 0.9975,
-                "min_temp": 1e-4,
-                "neighbor_tries": 40,
-                "initial_attempts": 24,
-            },
-        ),
-        RunConfig(
-            "local_search",
-            LocalSearchHeuristic,
-            {
-                "iterations": 10,
-                "max_no_improve": 5,
-            },
-        ),
-        RunConfig(
-            "simulated_annealing",
-            SimulatedAnnealingHeuristic,
-            {
-                "T_init": 5.0,
-                "T_min": 0.001,
-                "alpha": 0.998,
-                "max_iter": 5000,
+                "max_iterations": 20,
+                "epsilon": 1e-6,
+                "time_limit": 2.0,
+                "total_time_limit": 4.5,
             },
         ),
         # RunConfig(
