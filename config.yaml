@@ -1,0 +1,163 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+
+# Dataset to run experiments on
+instance_dir: datasets/a
+
+# Number of repetitions per (algorithm, instance) pair
+repetitions: 1
+
+# Base seed for reproducibility (run i uses seed_base + i)
+seed_base: 42
+
+# Maximum number of parallel workers (null = cpu_count - 1)
+max_workers: null
+
+# Time limit per solver run in seconds (null = no limit)
+time_limit: 30
+
+# Output directory for results
+result_dir: results
+
+algorithms:
+  # --- Greedy heuristics ---
+  - name: simple
+    params:
+      greedy: simple
+
+  - name: simple_multi
+    params:
+      greedy: multi
+
+  # - name: similar
+  #   params:
+  #     reverse: true
+  #     greedy: simple
+
+  # - name: similar_multi
+  #   params:
+  #     reverse: true
+  #     greedy: multi
+
+  # - name: diff
+  #   params:
+  #     reverse: false
+  #     greedy: simple
+
+  # - name: diff_multi
+  #   params:
+  #     reverse: false
+  #     greedy: multi
+
+  # - name: similarity_aggregation
+  #   params: {}
+
+  # - name: max_density_insert
+  #   params: {}
+
+  # - name: greedy_aisle_density
+  #   params:
+  #     initial_k: 1
+
+  # --- Construction heuristics ---
+  # - name: aisle_first
+  #   params: {}
+
+  - name: aisle_cluster_expansion
+    params:
+      attempts: 20
+      max_added_aisles: 20
+
+  # - name: ping_pong
+  #   params:
+  #     phase1_mode: both
+  #     max_iterations: 25
+  #     min_improvement_delta: 0.00001
+
+  # --- Metaheuristics ---
+  # - name: local_search
+  #   params:
+  #     iterations: 10
+  #     max_no_improve: 5
+
+  # - name: sa_basic
+  #   params:
+  #     T_init: 5.0
+  #     T_min: 0.001
+  #     alpha: 0.998
+  #     max_iter: 5000
+
+  # - name: sa_advanced
+  #   params:
+  #     max_iterations: 5000
+  #     max_time_seconds: 1.5
+  #     initial_temp: 2.5
+  #     cooling_rate: 0.9975
+  #     min_temp: 0.0001
+  #     neighbor_tries: 40
+  #     initial_attempts: 24
+
+  # - name: genetic
+  #   params:
+  #     population_size: 80
+  #     generations: 120
+  #     crossover_rate: 0.85
+  #     mutation_rate: 0.02
+  #     tournament_size: 3
+  #     elite_count: 4
+  #     penalty_scale: 3.0
+  #     penalty_lb: 1.0
+  #     penalty_ub: 1.0
+  #     penalty_stock: 2.0
+  #     repair_upper_bound: true
+  #     feasible_init_ratio: 0.6
+
+  # - name: aco
+  #   params:
+  #     n_ants: 30
+  #     n_iterations: 60
+  #     alpha: 1.1
+  #     beta: 2.2
+  #     evaporation: 0.15
+  #     q_deposit: 1.0
+  #     initial_pheromone: 1.0
+  #     candidate_list_size: 25
+  #     stop_after_lb_prob: 0.2
+  #     elitist_weight: 2.0
+
+  # - name: tabu_search
+  #   params:
+  #     max_iterations: 180
+  #     no_improve_limit: 60
+  #     neighborhood_samples: 40
+  #     tabu_tenure_orders: 10
+  #     tabu_tenure_aisles: 8
+
+  # - name: grasp
+  #   params:
+  #     max_iterations: 50
+  #     alpha: 0.3
+  #     local_search_no_improve: 8
+  #     construction_stagnation: 4
+  #     max_order_swap_checks: 20000
+  #     max_aisle_swap_checks: 5000
+
+  # --- Exact / Hybrid ---
+  # - name: dinkelbach_milp
+  #   params:
+  #     max_iterations: 20
+  #     epsilon: 0.000001
+  #     time_limit: 10
+  #     total_time_limit: 10
+
+  # - name: dinkelbach_local_search
+  #   params:
+  #     max_iterations: 22
+  #     epsilon: 0.000001
+  #     time_limit: 1.6
+  #     total_time_limit: 4.9
+  #     min_milp_time: 0.15
+  #     refine_time: 0.4
+  #     local_restarts: 4
+  #     local_max_no_improve: 4
+  #     neighborhood_samples: 30
+  #     random_seed: 42
