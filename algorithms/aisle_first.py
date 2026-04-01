@@ -2,7 +2,7 @@ from algorithms.base import Algorithm
 from problems.base import ProblemInput
 
 
-MAX_SIMPLE_AISLES = 5
+MAX_SEED_AISLES = 5
 
 
 class AisleFirstHeuristic(Algorithm):
@@ -118,28 +118,16 @@ class AisleFirstHeuristic(Algorithm):
         seed_aisle: int,
         ranked_aisles: list[int],
         k: int,
+        seed_similarities: dict[int, float],
     ) -> list[int]:
         if k <= 0:
             return []
 
-        seed_items = set(self.aisles[seed_aisle].keys())
         rank_pos = {aisle_idx: pos for pos, aisle_idx in enumerate(ranked_aisles)}
-        similarities: dict[int, float] = {}
-        for other_aisle in ranked_aisles:
-            if other_aisle == seed_aisle:
-                continue
-            other_items = set(self.aisles[other_aisle].keys())
-            union = seed_items.union(other_items)
-            if not union:
-                similarities[other_aisle] = 0.0
-            else:
-                similarities[other_aisle] = (
-                    len(seed_items.intersection(other_items)) / len(union)
-                )
 
         similar_aisles = sorted(
-            [aisle_idx for aisle_idx in ranked_aisles if aisle_idx != seed_aisle],
-            key=lambda idx: (similarities[idx], -rank_pos[idx]),
+            seed_similarities.keys(),
+            key=lambda idx: (seed_similarities[idx], -rank_pos[idx]),
             reverse=True,
         )
 
@@ -197,11 +185,27 @@ class AisleFirstHeuristic(Algorithm):
         if not ranked_aisles:
             return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
 
-        max_k_cfg = self.config.get("max_k", MAX_SIMPLE_AISLES)
-        max_k = max(1, min(max_k_cfg, MAX_SIMPLE_AISLES, self.n_aisles))
+        max_k_cfg = self.config.get("max_k", MAX_SEED_AISLES)
+        max_k = max(1, min(max_k_cfg, MAX_SEED_AISLES, self.n_aisles))
 
         order_sequences = self._build_order_sequences()
         seed_aisles = ranked_aisles[: min(max_k, len(ranked_aisles))]
+        aisle_items = [set(self.aisles[idx].keys()) for idx in range(self.n_aisles)]
+        similarities_by_seed: dict[int, dict[int, float]] = {}
+        for seed_aisle in seed_aisles:
+            seed_items = aisle_items[seed_aisle]
+            similarities_by_seed[seed_aisle] = {}
+            for other_aisle in ranked_aisles:
+                if other_aisle == seed_aisle:
+                    continue
+                other_items = aisle_items[other_aisle]
+                union = seed_items.union(other_items)
+                if not union:
+                    similarities_by_seed[seed_aisle][other_aisle] = 0.0
+                else:
+                    similarities_by_seed[seed_aisle][other_aisle] = (
+                        len(seed_items.intersection(other_items)) / len(union)
+                    )
 
         best_obj = -1.0
         best_total_units = -1
@@ -210,7 +214,9 @@ class AisleFirstHeuristic(Algorithm):
 
         for seed_aisle in seed_aisles:
             for k in range(max_k, 0, -1):
-                candidate_aisles = self._choose_aisles_for_k(seed_aisle, ranked_aisles, k)
+                candidate_aisles = self._choose_aisles_for_k(
+                    seed_aisle, ranked_aisles, k, similarities_by_seed[seed_aisle]
+                )
                 inventory_pool = self._pool_inventory(candidate_aisles)
                 for order_sequence in order_sequences:
                     selected_orders, total_units = self._pack_orders_for_inventory(

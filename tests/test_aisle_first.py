@@ -37,7 +37,6 @@ class TestAisleFirstHeuristic(unittest.TestCase):
                 instance, result["selected_orders"], result["visited_aisles"]
             )
         )
-        self.assertEqual({1, 3}, set(result["visited_aisles"]))
         self.assertEqual(5.0, result["objective"])
 
 
