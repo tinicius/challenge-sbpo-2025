@@ -2,6 +2,9 @@ from algorithms.base import Algorithm
 from problems.base import ProblemInput
 
 
+MAX_SIMPLE_AISLES = 5
+
+
 class AisleFirstHeuristic(Algorithm):
 
     def __init__(self, params: dict):
@@ -121,17 +124,22 @@ class AisleFirstHeuristic(Algorithm):
 
         seed_items = set(self.aisles[seed_aisle].keys())
         rank_pos = {aisle_idx: pos for pos, aisle_idx in enumerate(ranked_aisles)}
-
-        def aisle_similarity(other_aisle: int) -> float:
+        similarities: dict[int, float] = {}
+        for other_aisle in ranked_aisles:
+            if other_aisle == seed_aisle:
+                continue
             other_items = set(self.aisles[other_aisle].keys())
             union = seed_items.union(other_items)
             if not union:
-                return 0.0
-            return len(seed_items.intersection(other_items)) / len(union)
+                similarities[other_aisle] = 0.0
+            else:
+                similarities[other_aisle] = (
+                    len(seed_items.intersection(other_items)) / len(union)
+                )
 
         similar_aisles = sorted(
             [aisle_idx for aisle_idx in ranked_aisles if aisle_idx != seed_aisle],
-            key=lambda idx: (aisle_similarity(idx), -rank_pos[idx]),
+            key=lambda idx: (similarities[idx], -rank_pos[idx]),
             reverse=True,
         )
 
@@ -189,8 +197,8 @@ class AisleFirstHeuristic(Algorithm):
         if not ranked_aisles:
             return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
 
-        max_k_cfg = self.config.get("max_k", 5)
-        max_k = max(1, min(max_k_cfg, 5, self.n_aisles))
+        max_k_cfg = self.config.get("max_k", MAX_SIMPLE_AISLES)
+        max_k = max(1, min(max_k_cfg, MAX_SIMPLE_AISLES, self.n_aisles))
 
         order_sequences = self._build_order_sequences()
         seed_aisles = ranked_aisles[: min(max_k, len(ranked_aisles))]
