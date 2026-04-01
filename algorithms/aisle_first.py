@@ -1,5 +1,3 @@
-import random
-
 from algorithms.base import Algorithm
 from problems.base import ProblemInput
 
@@ -114,22 +112,37 @@ class AisleFirstHeuristic(Algorithm):
 
     def _choose_aisles_for_k(
         self,
+        seed_aisle: int,
         ranked_aisles: list[int],
         k: int,
-        rcl_extra: int,
-        rng: random.Random,
     ) -> list[int]:
-        if rcl_extra <= 0:
-            return ranked_aisles[:k]
+        if k <= 0:
+            return []
 
-        rcl_size = min(len(ranked_aisles), k + rcl_extra)
-        rcl = ranked_aisles[:rcl_size]
-        if len(rcl) <= k:
-            return list(rcl)
+        seed_items = set(self.aisles[seed_aisle].keys())
+        rank_pos = {aisle_idx: pos for pos, aisle_idx in enumerate(ranked_aisles)}
 
-        sampled = rng.sample(rcl, k)
-        sampled.sort()
-        return sampled
+        def aisle_similarity(other_aisle: int) -> float:
+            other_items = set(self.aisles[other_aisle].keys())
+            union = seed_items.union(other_items)
+            if not union:
+                return 0.0
+            return len(seed_items.intersection(other_items)) / len(union)
+
+        similar_aisles = sorted(
+            [aisle_idx for aisle_idx in ranked_aisles if aisle_idx != seed_aisle],
+            key=lambda idx: (aisle_similarity(idx), -rank_pos[idx]),
+            reverse=True,
+        )
+
+        selected = [seed_aisle]
+        for aisle_idx in similar_aisles:
+            if len(selected) >= k:
+                break
+            selected.append(aisle_idx)
+
+        selected.sort()
+        return selected
 
     def _pack_orders_for_inventory(
         self, inventory_pool: dict[int, int], order_sequence: list[int]
@@ -176,25 +189,20 @@ class AisleFirstHeuristic(Algorithm):
         if not ranked_aisles:
             return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
 
-        max_k_cfg = self.config.get("max_k", self.n_aisles)
-        max_k = max(1, min(max_k_cfg, self.n_aisles))
+        max_k_cfg = self.config.get("max_k", 5)
+        max_k = max(1, min(max_k_cfg, 5, self.n_aisles))
 
         order_sequences = self._build_order_sequences()
-
-        iterations = max(1, self.config.get("iterations", 1))
-        rcl_extra = max(0, self.config.get("rcl_extra", 0))
-        rng = random.Random(self.config.get("random_seed", None))
+        seed_aisles = ranked_aisles[: min(max_k, len(ranked_aisles))]
 
         best_obj = -1.0
         best_total_units = -1
         best_orders: list[int] = []
         best_aisles: list[int] = []
 
-        for _ in range(iterations):
-            for k in range(1, max_k + 1):
-                candidate_aisles = self._choose_aisles_for_k(
-                    ranked_aisles, k, rcl_extra, rng
-                )
+        for seed_aisle in seed_aisles:
+            for k in range(max_k, 0, -1):
+                candidate_aisles = self._choose_aisles_for_k(seed_aisle, ranked_aisles, k)
                 inventory_pool = self._pool_inventory(candidate_aisles)
                 for order_sequence in order_sequences:
                     selected_orders, total_units = self._pack_orders_for_inventory(
