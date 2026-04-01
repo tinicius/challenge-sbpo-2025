@@ -22,6 +22,19 @@ def _build_stats(values):
     }
 
 
+def _to_set(value):
+    if isinstance(value, list):
+        return set(value)
+    return set()
+
+
+def _jaccard_similarity(a, b):
+    union = a | b
+    if not union:
+        return 1.0
+    return len(a & b) / len(union)
+
+
 def consolidate_results(jsonl_path: str, output_dir: str) -> str:
     """Read JSONL and write summary.csv. Returns path to CSV."""
     if not os.path.exists(jsonl_path):
@@ -135,5 +148,64 @@ def consolidate_results(jsonl_path: str, output_dir: str) -> str:
     display_cols = ["algorithm", "instance", "feasible_runs", "objective_mean", "objective_max", "items_mean", "aisles_mean", "exec_time_mean"]
     display_cols = [c for c in display_cols if c in summary_df.columns]
     print(summary_df[display_cols].to_string(index=False))
+
+    # Build per-instance method similarity and selection distribution tables.
+    required_cols = {"algorithm", "instance", "selected_orders", "visited_aisles", "selected_items"}
+    if required_cols.issubset(df.columns):
+        best_idx = df.groupby(["algorithm", "instance"])["objective"].idxmax()
+        best_df = df.loc[best_idx].copy()
+
+        similarity_rows = []
+        distribution_rows = []
+
+        for instance, instance_df in best_df.groupby("instance"):
+            rows = list(instance_df.to_dict(orient="records"))
+
+            for row in rows:
+                distribution_rows.append({
+                    "instance": instance,
+                    "algorithm": row["algorithm"],
+                    "num_orders": len(row.get("selected_orders", [])),
+                    "num_aisles": len(row.get("visited_aisles", [])),
+                    "num_items": len(row.get("selected_items", [])),
+                    "selected_orders": "|".join(map(str, row.get("selected_orders", []))),
+                    "visited_aisles": "|".join(map(str, row.get("visited_aisles", []))),
+                    "selected_items": "|".join(map(str, row.get("selected_items", []))),
+                    "objective": row.get("objective", 0.0),
+                    "feasible": row.get("feasible", False),
+                })
+
+            for i in range(len(rows)):
+                for j in range(i + 1, len(rows)):
+                    left = rows[i]
+                    right = rows[j]
+                    left_orders = _to_set(left.get("selected_orders"))
+                    right_orders = _to_set(right.get("selected_orders"))
+                    left_aisles = _to_set(left.get("visited_aisles"))
+                    right_aisles = _to_set(right.get("visited_aisles"))
+                    left_items = _to_set(left.get("selected_items"))
+                    right_items = _to_set(right.get("selected_items"))
+
+                    similarity_rows.append({
+                        "instance": instance,
+                        "algorithm_left": left["algorithm"],
+                        "algorithm_right": right["algorithm"],
+                        "orders_jaccard": _jaccard_similarity(left_orders, right_orders),
+                        "aisles_jaccard": _jaccard_similarity(left_aisles, right_aisles),
+                        "items_jaccard": _jaccard_similarity(left_items, right_items),
+                        "orders_overlap": len(left_orders & right_orders),
+                        "aisles_overlap": len(left_aisles & right_aisles),
+                        "items_overlap": len(left_items & right_items),
+                    })
+
+        if similarity_rows:
+            similarity_path = os.path.join(output_dir, f"similarity_{suffix}.csv")
+            pd.DataFrame(similarity_rows).to_csv(similarity_path, index=False)
+            print(f"Similarity CSV: {similarity_path}")
+
+        if distribution_rows:
+            distribution_path = os.path.join(output_dir, f"distribution_{suffix}.csv")
+            pd.DataFrame(distribution_rows).to_csv(distribution_path, index=False)
+            print(f"Distribution CSV: {distribution_path}")
 
     return csv_path

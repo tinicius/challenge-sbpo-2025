@@ -65,8 +65,11 @@ def run_task(
             objective = compute_objective(instance, selected_orders, visited_aisles)
 
     total_items = 0
+    selected_items = set()
     if selected_orders:
         total_items = sum(sum(instance.orders[o].values()) for o in selected_orders)
+        for o in selected_orders:
+            selected_items.update(instance.orders[o].keys())
 
     record = {
         "algorithm": algo_name,
@@ -81,6 +84,9 @@ def run_task(
         "total_items": total_items,
         "num_aisles": len(visited_aisles),
         "num_orders": len(selected_orders),
+        "selected_orders": selected_orders,
+        "visited_aisles": visited_aisles,
+        "selected_items": sorted(selected_items),
         "params": algo_params,
     }
 
