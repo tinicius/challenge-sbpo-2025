@@ -23,12 +23,14 @@ def _build_stats(values):
 
 
 def _to_set(value):
+    """Return a set from a list-like JSON field, else an empty set."""
     if isinstance(value, list):
         return set(value)
     return set()
 
 
 def _jaccard_similarity(a, b):
+    """Compute Jaccard index for two sets; returns 1.0 when both are empty."""
     union = a | b
     if not union:
         return 1.0
