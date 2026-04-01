@@ -42,11 +42,6 @@ class MinAisleCover(Algorithm):
         best_aisles: list[int] = []
 
         for sequence in order_sequences:
-            self._try_sequence(
-                sequence, orders, aisles, order_units, lb, ub,
-                best_obj, best_orders, best_aisles,
-            )
-            # Update best from returned values
             obj, ords, ais = self._try_sequence(
                 sequence, orders, aisles, order_units, lb, ub,
                 best_obj, best_orders, best_aisles,

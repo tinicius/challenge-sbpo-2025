@@ -7,6 +7,8 @@ from algorithms.aisle_cluster_expansion import AisleClusterExpansion
 from algorithms.greedy_set_cover import GreedySetCover
 from algorithms.lp_aisle_focus import LPAisleFocus
 from algorithms.lagrangian_relaxation import LagrangianRelaxation
+from algorithms.column_generation import ColumnGeneration
+from algorithms.min_aisle_cover import MinAisleCover
 
 
 REGISTRY = {
@@ -22,6 +24,9 @@ REGISTRY = {
     "greedy_set_cover": GreedySetCover,
     # LP-based
     "lp_aisle_focus": LPAisleFocus,
+    "column_generation": ColumnGeneration,
+    # Set-cover
+    "min_aisle_cover": MinAisleCover,
     # Lagrangian
     "lagrangian_relaxation": LagrangianRelaxation,
 }
