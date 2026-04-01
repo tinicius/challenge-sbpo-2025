@@ -31,9 +31,7 @@ def main():
     print(f"Time limit: {config.get('time_limit', 'none')}s")
 
     total_runs = (
-        len(config["algorithms"])
-        * len(instance_paths)
-        * config.get("repetitions", 1)
+        len(config["algorithms"]) * len(instance_paths) * config.get("repetitions", 1)
     )
     print(f"Total runs: {total_runs}")
     print()
@@ -59,7 +57,11 @@ def main():
     # Consolidate to CSV
     from runner.consolidate import consolidate_results
 
-    csv_path = consolidate_results(jsonl_path, run_dir)
+    csv_path = consolidate_results(
+        jsonl_path,
+        run_dir,
+        save_output=config.get("save_output", False),
+    )
     if csv_path:
         print(f"Summary CSV: {csv_path}")
 

@@ -37,7 +37,9 @@ def _jaccard_similarity(a, b):
     return len(a & b) / len(union)
 
 
-def consolidate_results(jsonl_path: str, output_dir: str) -> str:
+def consolidate_results(
+    jsonl_path: str, output_dir: str, save_output: bool = False
+) -> str:
     """Read JSONL and write summary.csv. Returns path to CSV."""
     if not os.path.exists(jsonl_path):
         raise FileNotFoundError(f"Results file not found: {jsonl_path}")
@@ -59,7 +61,11 @@ def consolidate_results(jsonl_path: str, output_dir: str) -> str:
 
     # Derive unique suffix from JSONL filename (e.g. runs_a_20260330_120000.jsonl → a_20260330_120000)
     jsonl_stem = os.path.splitext(os.path.basename(jsonl_path))[0]
-    suffix = jsonl_stem.removeprefix("runs_") if jsonl_stem.startswith("runs_") else jsonl_stem
+    suffix = (
+        jsonl_stem.removeprefix("runs_")
+        if jsonl_stem.startswith("runs_")
+        else jsonl_stem
+    )
 
     # Build aggregated summary (only feasible runs)
     csv_path = os.path.join(output_dir, f"summary_{suffix}.csv")
@@ -95,31 +101,63 @@ def consolidate_results(jsonl_path: str, output_dir: str) -> str:
                 dataset = ""
 
         total_runs = len(
-            df[
-                (df["algorithm"] == algorithm)
-                & (df["instance"] == instance)
-            ]
+            df[(df["algorithm"] == algorithm) & (df["instance"] == instance)]
         )
         feasible_runs = len(group_df)
-        timed_out_runs = int(
-            df[
-                (df["algorithm"] == algorithm)
-                & (df["instance"] == instance)
-                & (df.get("timed_out", pd.Series(False)) == True)
-            ].shape[0]
-        ) if "timed_out" in df.columns else 0
+        timed_out_runs = (
+            int(
+                df[
+                    (df["algorithm"] == algorithm)
+                    & (df["instance"] == instance)
+                    & (df.get("timed_out", pd.Series(False)) == True)
+                ].shape[0]
+            )
+            if "timed_out" in df.columns
+            else 0
+        )
 
         obj_stats = _build_stats(group_df["objective"].tolist())
 
-        items_values = group_df["total_items"].tolist() if "total_items" in group_df.columns else []
-        items_stats = _build_stats(items_values) if items_values else {k: 0 for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]}
+        items_values = (
+            group_df["total_items"].tolist()
+            if "total_items" in group_df.columns
+            else []
+        )
+        items_stats = (
+            _build_stats(items_values)
+            if items_values
+            else {
+                k: 0
+                for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]
+            }
+        )
 
-        aisles_values = group_df["num_aisles"].tolist() if "num_aisles" in group_df.columns else []
-        aisles_stats = _build_stats(aisles_values) if aisles_values else {k: 0 for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]}
+        aisles_values = (
+            group_df["num_aisles"].tolist() if "num_aisles" in group_df.columns else []
+        )
+        aisles_stats = (
+            _build_stats(aisles_values)
+            if aisles_values
+            else {
+                k: 0
+                for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]
+            }
+        )
 
-        time_col = "time_s" if "time_s" in group_df.columns else "exec_time" if "exec_time" in group_df.columns else None
+        time_col = (
+            "time_s"
+            if "time_s" in group_df.columns
+            else "exec_time" if "exec_time" in group_df.columns else None
+        )
         time_values = group_df[time_col].tolist() if time_col else []
-        time_stats = _build_stats(time_values) if time_values else {k: 0 for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]}
+        time_stats = (
+            _build_stats(time_values)
+            if time_values
+            else {
+                k: 0
+                for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]
+            }
+        )
 
         row = {
             "dataset": dataset,
@@ -143,16 +181,36 @@ def consolidate_results(jsonl_path: str, output_dir: str) -> str:
     summary_df = pd.DataFrame(summary_rows)
     summary_df.to_csv(csv_path, index=False)
 
-    print(f"Consolidated {len(records)} records → {len(summary_rows)} summary rows → {csv_path}")
+    print(
+        f"Consolidated {len(records)} records → {len(summary_rows)} summary rows → {csv_path}"
+    )
 
     # Print summary to console
     print("\n--- Summary (feasible runs) ---")
-    display_cols = ["algorithm", "instance", "feasible_runs", "objective_mean", "objective_max", "items_mean", "aisles_mean", "exec_time_mean"]
+    display_cols = [
+        "algorithm",
+        "instance",
+        "feasible_runs",
+        "objective_mean",
+        "objective_max",
+        "items_mean",
+        "aisles_mean",
+        "exec_time_mean",
+    ]
     display_cols = [c for c in display_cols if c in summary_df.columns]
     print(summary_df[display_cols].to_string(index=False))
 
+    if not save_output:
+        return csv_path
+
     # Build per-instance method similarity and selection distribution tables.
-    required_cols = {"algorithm", "instance", "selected_orders", "visited_aisles", "selected_items"}
+    required_cols = {
+        "algorithm",
+        "instance",
+        "selected_orders",
+        "visited_aisles",
+        "selected_items",
+    }
     if required_cols.issubset(df.columns):
         best_idx = df.groupby(["algorithm", "instance"])["objective"].idxmax()
         best_df = df.loc[best_idx].copy()
@@ -164,18 +222,26 @@ def consolidate_results(jsonl_path: str, output_dir: str) -> str:
             rows = list(instance_df.to_dict(orient="records"))
 
             for row in rows:
-                distribution_rows.append({
-                    "instance": instance,
-                    "algorithm": row["algorithm"],
-                    "num_orders": len(row.get("selected_orders", [])),
-                    "num_aisles": len(row.get("visited_aisles", [])),
-                    "num_items": len(row.get("selected_items", [])),
-                    "selected_orders": "|".join(map(str, row.get("selected_orders", []))),
-                    "visited_aisles": "|".join(map(str, row.get("visited_aisles", []))),
-                    "selected_items": "|".join(map(str, row.get("selected_items", []))),
-                    "objective": row.get("objective", 0.0),
-                    "feasible": row.get("feasible", False),
-                })
+                distribution_rows.append(
+                    {
+                        "instance": instance,
+                        "algorithm": row["algorithm"],
+                        "num_orders": len(row.get("selected_orders", [])),
+                        "num_aisles": len(row.get("visited_aisles", [])),
+                        "num_items": len(row.get("selected_items", [])),
+                        "selected_orders": "|".join(
+                            map(str, row.get("selected_orders", []))
+                        ),
+                        "visited_aisles": "|".join(
+                            map(str, row.get("visited_aisles", []))
+                        ),
+                        "selected_items": "|".join(
+                            map(str, row.get("selected_items", []))
+                        ),
+                        "objective": row.get("objective", 0.0),
+                        "feasible": row.get("feasible", False),
+                    }
+                )
 
             for i in range(len(rows)):
                 for j in range(i + 1, len(rows)):
@@ -188,17 +254,25 @@ def consolidate_results(jsonl_path: str, output_dir: str) -> str:
                     left_items = _to_set(left.get("selected_items"))
                     right_items = _to_set(right.get("selected_items"))
 
-                    similarity_rows.append({
-                        "instance": instance,
-                        "algorithm_left": left["algorithm"],
-                        "algorithm_right": right["algorithm"],
-                        "orders_jaccard": _jaccard_similarity(left_orders, right_orders),
-                        "aisles_jaccard": _jaccard_similarity(left_aisles, right_aisles),
-                        "items_jaccard": _jaccard_similarity(left_items, right_items),
-                        "orders_overlap": len(left_orders & right_orders),
-                        "aisles_overlap": len(left_aisles & right_aisles),
-                        "items_overlap": len(left_items & right_items),
-                    })
+                    similarity_rows.append(
+                        {
+                            "instance": instance,
+                            "algorithm_left": left["algorithm"],
+                            "algorithm_right": right["algorithm"],
+                            "orders_jaccard": _jaccard_similarity(
+                                left_orders, right_orders
+                            ),
+                            "aisles_jaccard": _jaccard_similarity(
+                                left_aisles, right_aisles
+                            ),
+                            "items_jaccard": _jaccard_similarity(
+                                left_items, right_items
+                            ),
+                            "orders_overlap": len(left_orders & right_orders),
+                            "aisles_overlap": len(left_aisles & right_aisles),
+                            "items_overlap": len(left_items & right_items),
+                        }
+                    )
 
         if similarity_rows:
             similarity_path = os.path.join(output_dir, f"similarity_{suffix}.csv")

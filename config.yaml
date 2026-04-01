@@ -18,6 +18,9 @@ time_limit: 30
 # Output directory for results
 result_dir: results
 
+# Save problem output (selected orders and aisles) to CSV (default: false)
+save_output: True
+
 algorithms:
   # --- Greedy heuristics ---
   - name: simple
@@ -30,31 +33,31 @@ algorithms:
     params:
       greedy: multi
 
-  - name: aisle_first_desc
-    algo: aisle_first
-    params:
-      order_strategy: desc
+  # - name: aisle_first_desc
+  #   algo: aisle_first
+  #   params:
+  #     order_strategy: desc
 
-  - name: aisle_first_asc
-    algo: aisle_first
-    params:
-      order_strategy: asc
+  # - name: aisle_first_asc
+  #   algo: aisle_first
+  #   params:
+  #     order_strategy: asc
 
-  - name: similarity
-    algo: similarity
-    params:
-      reverse: True
+  # - name: similarity
+  #   algo: similarity
+  #   params:
+  #     reverse: True
 
-  - name: lagrangian_relaxation
+  # - name: lagrangian_relaxation
 
-  - name: column_generation
-    algo: column_generation
-    params:
-      initial_pool_size: 5
-      max_cg_iterations: 50
-      max_columns_per_iter: 5
+  # - name: column_generation
+  #   algo: column_generation
+  #   params:
+  #     initial_pool_size: 5
+  #     max_cg_iterations: 50
+  #     max_columns_per_iter: 5
 
-  - name: min_aisle_cover
+  # - name: min_aisle_cover
   
   # - name: aisle_cluster_expansion
   #   algo: aisle_cluster_expansion
