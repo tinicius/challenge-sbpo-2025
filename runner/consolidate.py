@@ -46,25 +46,18 @@ def consolidate_results(jsonl_path: str, output_dir: str) -> str:
     jsonl_stem = os.path.splitext(os.path.basename(jsonl_path))[0]
     suffix = jsonl_stem.removeprefix("runs_") if jsonl_stem.startswith("runs_") else jsonl_stem
 
-    # Write raw results
-    raw_csv_path = os.path.join(output_dir, f"raw_results_{suffix}.csv")
-    df.to_csv(raw_csv_path, index=False)
-    print(f"Raw results: {raw_csv_path}")
-
-    # Build aggregated summary
+    # Build aggregated summary (only feasible runs)
     csv_path = os.path.join(output_dir, f"summary_{suffix}.csv")
 
     if "algorithm" not in df.columns or "objective" not in df.columns:
-        df.to_csv(csv_path, index=False)
-        print(f"Consolidated {len(records)} records → {csv_path}")
-        return csv_path
+        print("Missing required columns (algorithm, objective). No summary generated.")
+        return ""
 
     feasible = df[df["feasible"] == True]
 
     if feasible.empty:
-        df.to_csv(csv_path, index=False)
-        print("No feasible runs found.")
-        return csv_path
+        print("No feasible runs found. No summary generated.")
+        return ""
 
     # Determine dataset column
     dataset_col = "dataset" if "dataset" in feasible.columns else None

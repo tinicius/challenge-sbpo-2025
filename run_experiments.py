@@ -54,7 +54,7 @@ def main():
     elapsed = time.perf_counter() - start
 
     print(f"\nCompleted {len(results)} runs in {elapsed:.1f}s")
-    print(f"Raw results: {jsonl_path}")
+    print(f"JSONL log: {jsonl_path}")
 
     # Consolidate to CSV
     from runner.consolidate import consolidate_results
