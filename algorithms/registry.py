@@ -12,11 +12,7 @@ from algorithms.lagrangian_relaxation import LagrangianRelaxation
 REGISTRY = {
     # Greedy heuristics
     "simple": SimpleHeuristic,
-    "simple_multi": SimpleHeuristic,
     "similar": SimilarityHeuristic,
-    "similar_multi": SimilarityHeuristic,
-    "diff": SimilarityHeuristic,
-    "diff_multi": SimilarityHeuristic,
     "aisle_first": AisleFirstHeuristic,
     "aisle_cluster_expansion": AisleClusterExpansion,
     "greedy_set_cover": GreedySetCover,

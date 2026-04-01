@@ -175,20 +175,28 @@ class AisleFirstHeuristic(Algorithm):
         ranked_aisles = [aisle_idx for aisle_idx, _ in ranked_scores]
 
         if not ranked_aisles:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         max_seed_aisles_cfg = self.config.get(
             "max_seed_aisles",
             # Backward compatibility with previous config naming.
             self.config.get("max_k", MAX_SEED_AISLES),
         )
-        max_seed_aisles = max(1, min(max_seed_aisles_cfg, MAX_SEED_AISLES, self.n_aisles))
+
+        max_seed_aisles = max(
+            1, min(max_seed_aisles_cfg, MAX_SEED_AISLES, self.n_aisles)
+        )
 
         order_sequences = self._build_order_sequences()
+
         seed_aisles = ranked_aisles[:max_seed_aisles]
+
         rank_pos = {aisle_idx: pos for pos, aisle_idx in enumerate(ranked_aisles)}
+
         aisle_items = [set(self.aisles[idx].keys()) for idx in range(self.n_aisles)]
+
         sorted_similar_aisles_by_seed: dict[int, list[int]] = {}
+
         for seed_aisle in seed_aisles:
             seed_items = aisle_items[seed_aisle]
             seed_similarities: dict[int, float] = {}
@@ -261,14 +269,19 @@ class AisleFirstHeuristic(Algorithm):
         visited_aisles = best_aisles
 
         if best_total_units < self.lb:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         if not selected_orders or not visited_aisles:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         total_items = sum(sum(inst.orders[o].values()) for o in selected_orders)
         objective = total_items / len(visited_aisles)
-        return {'selected_orders': selected_orders, 'visited_aisles': visited_aisles, 'objective': objective}
+        return {
+            "selected_orders": selected_orders,
+            "visited_aisles": visited_aisles,
+            "objective": objective,
+        }
+
     def _compute_jaccard_similarity(
         self, first_items: set[int], second_items: set[int]
     ) -> float:
