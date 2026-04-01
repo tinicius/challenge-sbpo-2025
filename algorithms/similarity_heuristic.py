@@ -31,7 +31,7 @@ class SimilarityHeuristic(Algorithm):
         self.ub = inst.ub
         self.config = self.params
 
-        reverse = self.config["reverse"]
+        reverse = self.config["reverse"] == "True"
 
         greedy = self.config["greedy"]
 
@@ -76,7 +76,7 @@ class SimilarityHeuristic(Algorithm):
                     stock[idx] = stock.get(idx, 0) - qnt
 
         if total_units < self.lb:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         demand: dict[int, int] = {}
 
@@ -92,8 +92,12 @@ class SimilarityHeuristic(Algorithm):
             visited_aisles = greedy_aisle_select(demand, self.aisles)
 
         if not selected_orders or not visited_aisles:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         total_items = sum(sum(inst.orders[o].values()) for o in selected_orders)
         objective = total_items / len(visited_aisles)
-        return {'selected_orders': selected_orders, 'visited_aisles': visited_aisles, 'objective': objective}
+        return {
+            "selected_orders": selected_orders,
+            "visited_aisles": visited_aisles,
+            "objective": objective,
+        }

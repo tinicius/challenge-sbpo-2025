@@ -2,10 +2,6 @@ from algorithms.base import Algorithm
 from problems.base import ProblemInput
 
 
-# Maximum number of aisles explored by the simple corridor-selection heuristic.
-MAX_SEED_AISLES = 5
-
-
 class AisleFirstHeuristic(Algorithm):
 
     def __init__(self, params: dict):
@@ -48,24 +44,24 @@ class AisleFirstHeuristic(Algorithm):
                 return False
         return True
 
-    def _build_order_sequences(self) -> list[list[int]]:
-        strategy = self.config.get("order_strategy", "both")
-        base = self.config.get("seed", list(range(self.n_orders)))
-        base_list = list(base)
+    def _build_order_sequences(self) -> list[int]:
+        strategy = self.config.get("order_strategy", "size_asc")
 
-        if strategy == "seed":
-            return [base_list]
+        base_list = list(range(self.n_orders))
+
+        if strategy == "random":
+            return base_list
 
         asc = sorted(base_list, key=lambda idx: (sum(self.orders[idx].values()), idx))
         desc = sorted(base_list, key=lambda idx: (-sum(self.orders[idx].values()), idx))
 
         if strategy == "size_asc":
-            return [asc]
+            return asc
 
         if strategy == "size_desc":
-            return [desc]
+            return desc
 
-        return [desc, asc]
+        raise ValueError(f"Invalid order strategy: {strategy}")
 
     def _build_demand_from_orders(self, selected_orders: list[int]) -> dict[int, int]:
         demand: dict[int, int] = {}
@@ -177,17 +173,11 @@ class AisleFirstHeuristic(Algorithm):
         if not ranked_aisles:
             return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
-        max_seed_aisles_cfg = self.config.get(
-            "max_seed_aisles",
-            # Backward compatibility with previous config naming.
-            self.config.get("max_k", MAX_SEED_AISLES),
-        )
+        max_seed_aisles_cfg = self.config.get("max_k", 1)
 
-        max_seed_aisles = max(
-            1, min(max_seed_aisles_cfg, MAX_SEED_AISLES, self.n_aisles)
-        )
+        max_seed_aisles = max(1, min(max_seed_aisles_cfg, self.n_aisles))
 
-        order_sequences = self._build_order_sequences()
+        order_sequence = self._build_order_sequences()
 
         seed_aisles = ranked_aisles[:max_seed_aisles]
 
@@ -228,42 +218,36 @@ class AisleFirstHeuristic(Algorithm):
                     seed_aisle, sorted_similar_aisles_by_seed[seed_aisle], k
                 )
                 inventory_pool = self._pool_inventory(candidate_aisles)
-                for order_sequence in order_sequences:
-                    selected_orders, total_units = self._pack_orders_for_inventory(
-                        inventory_pool, order_sequence
-                    )
 
-                    if total_units < self.lb:
-                        continue
+                selected_orders, total_units = self._pack_orders_for_inventory(
+                    inventory_pool, order_sequence
+                )
 
-                    cleaned_aisles = self._cleanup_redundant_aisles(
-                        selected_orders, candidate_aisles
-                    )
+                if total_units < self.lb:
+                    continue
 
-                    if not cleaned_aisles:
-                        continue
+                cleaned_aisles = self._cleanup_redundant_aisles(
+                    selected_orders, candidate_aisles
+                )
 
-                    obj = total_units / len(cleaned_aisles)
+                if not cleaned_aisles:
+                    continue
 
-                    is_better = obj > best_obj
-                    same_obj_more_units = (
-                        obj == best_obj and total_units > best_total_units
-                    )
-                    same_obj_same_units_less_aisles = (
-                        obj == best_obj
-                        and total_units == best_total_units
-                        and (not best_aisles or len(cleaned_aisles) < len(best_aisles))
-                    )
+                obj = total_units / len(cleaned_aisles)
 
-                    if (
-                        is_better
-                        or same_obj_more_units
-                        or same_obj_same_units_less_aisles
-                    ):
-                        best_obj = obj
-                        best_total_units = total_units
-                        best_orders = selected_orders
-                        best_aisles = cleaned_aisles
+                is_better = obj > best_obj
+                same_obj_more_units = obj == best_obj and total_units > best_total_units
+                same_obj_same_units_less_aisles = (
+                    obj == best_obj
+                    and total_units == best_total_units
+                    and (not best_aisles or len(cleaned_aisles) < len(best_aisles))
+                )
+
+                if is_better or same_obj_more_units or same_obj_same_units_less_aisles:
+                    best_obj = obj
+                    best_total_units = total_units
+                    best_orders = selected_orders
+                    best_aisles = cleaned_aisles
 
         selected_orders = best_orders
         visited_aisles = best_aisles
