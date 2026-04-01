@@ -21,25 +21,49 @@ result_dir: results
 algorithms:
   # --- Greedy heuristics ---
   - name: simple
+    algo: simple
     params:
       greedy: simple
 
   - name: simple_multi
+    algo: simple
     params:
       greedy: multi
 
-  - name: aisle_cluster_expansion
+  - name: aisle_first_desc
+    algo: aisle_first
+    params:
+      order_strategy: desc
 
-  - name: greedy_set_cover
+  - name: aisle_first_asc
+    algo: aisle_first
+    params:
+      order_strategy: asc
 
-  - name: lp_aisle_focus
+  - name: similarity
+    algo: similarity
+    params:
+      reverse: True
 
   - name: lagrangian_relaxation
 
   - name: column_generation
+    algo: column_generation
     params:
       initial_pool_size: 5
       max_cg_iterations: 50
       max_columns_per_iter: 5
 
   - name: min_aisle_cover
+  
+  # - name: aisle_cluster_expansion
+  #   algo: aisle_cluster_expansion
+
+  # - name: greedy_set_cover
+  #   algo: greedy_set_cover
+
+  # - name: lp_aisle_focus
+  #   algo: lp_aisle_focus
+
+  # - name: lagrangian_relaxation
+  #   algo: lagrangian_relaxation

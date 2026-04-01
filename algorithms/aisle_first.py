@@ -1,7 +1,9 @@
-import random
-
 from algorithms.base import Algorithm
 from problems.base import ProblemInput
+
+
+# Maximum number of aisles explored by the simple corridor-selection heuristic.
+MAX_SEED_AISLES = 5
 
 
 class AisleFirstHeuristic(Algorithm):
@@ -114,22 +116,21 @@ class AisleFirstHeuristic(Algorithm):
 
     def _choose_aisles_for_k(
         self,
-        ranked_aisles: list[int],
+        seed_aisle: int,
+        similar_aisles: list[int],
         k: int,
-        rcl_extra: int,
-        rng: random.Random,
     ) -> list[int]:
-        if rcl_extra <= 0:
-            return ranked_aisles[:k]
+        if k <= 0:
+            return []
 
-        rcl_size = min(len(ranked_aisles), k + rcl_extra)
-        rcl = ranked_aisles[:rcl_size]
-        if len(rcl) <= k:
-            return list(rcl)
+        selected = [seed_aisle]
+        for aisle_idx in similar_aisles:
+            if len(selected) >= k:
+                break
+            selected.append(aisle_idx)
 
-        sampled = rng.sample(rcl, k)
-        sampled.sort()
-        return sampled
+        selected.sort()
+        return selected
 
     def _pack_orders_for_inventory(
         self, inventory_pool: dict[int, int], order_sequence: list[int]
@@ -174,26 +175,57 @@ class AisleFirstHeuristic(Algorithm):
         ranked_aisles = [aisle_idx for aisle_idx, _ in ranked_scores]
 
         if not ranked_aisles:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
-        max_k_cfg = self.config.get("max_k", self.n_aisles)
-        max_k = max(1, min(max_k_cfg, self.n_aisles))
+        max_seed_aisles_cfg = self.config.get(
+            "max_seed_aisles",
+            # Backward compatibility with previous config naming.
+            self.config.get("max_k", MAX_SEED_AISLES),
+        )
+
+        max_seed_aisles = max(
+            1, min(max_seed_aisles_cfg, MAX_SEED_AISLES, self.n_aisles)
+        )
 
         order_sequences = self._build_order_sequences()
 
-        iterations = max(1, self.config.get("iterations", 1))
-        rcl_extra = max(0, self.config.get("rcl_extra", 0))
-        rng = random.Random(self.config.get("random_seed", None))
+        seed_aisles = ranked_aisles[:max_seed_aisles]
+
+        rank_pos = {aisle_idx: pos for pos, aisle_idx in enumerate(ranked_aisles)}
+
+        aisle_items = [set(self.aisles[idx].keys()) for idx in range(self.n_aisles)]
+
+        sorted_similar_aisles_by_seed: dict[int, list[int]] = {}
+
+        for seed_aisle in seed_aisles:
+            seed_items = aisle_items[seed_aisle]
+            seed_similarities: dict[int, float] = {}
+            for other_aisle in ranked_aisles:
+                if other_aisle == seed_aisle:
+                    continue
+                other_items = aisle_items[other_aisle]
+                seed_similarities[other_aisle] = self._compute_jaccard_similarity(
+                    seed_items, other_items
+                )
+            sorted_similar_aisles_by_seed[seed_aisle] = sorted(
+                seed_similarities.keys(),
+                # Tie-break by global aisle ranking (higher useful inventory first).
+                key=lambda idx: (seed_similarities[idx], -rank_pos[idx]),
+                reverse=True,
+            )
 
         best_obj = -1.0
         best_total_units = -1
         best_orders: list[int] = []
         best_aisles: list[int] = []
 
-        for _ in range(iterations):
-            for k in range(1, max_k + 1):
+        for seed_aisle in seed_aisles:
+            max_aisles_for_seed = min(
+                max_seed_aisles, len(sorted_similar_aisles_by_seed[seed_aisle]) + 1
+            )
+            for k in range(max_aisles_for_seed, 0, -1):
                 candidate_aisles = self._choose_aisles_for_k(
-                    ranked_aisles, k, rcl_extra, rng
+                    seed_aisle, sorted_similar_aisles_by_seed[seed_aisle], k
                 )
                 inventory_pool = self._pool_inventory(candidate_aisles)
                 for order_sequence in order_sequences:
@@ -237,11 +269,24 @@ class AisleFirstHeuristic(Algorithm):
         visited_aisles = best_aisles
 
         if best_total_units < self.lb:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         if not selected_orders or not visited_aisles:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         total_items = sum(sum(inst.orders[o].values()) for o in selected_orders)
         objective = total_items / len(visited_aisles)
-        return {'selected_orders': selected_orders, 'visited_aisles': visited_aisles, 'objective': objective}
+        return {
+            "selected_orders": selected_orders,
+            "visited_aisles": visited_aisles,
+            "objective": objective,
+        }
+
+    def _compute_jaccard_similarity(
+        self, first_items: set[int], second_items: set[int]
+    ) -> float:
+        intersection_size = len(first_items.intersection(second_items))
+        union_size = len(first_items) + len(second_items) - intersection_size
+        if union_size == 0:
+            return 0.0
+        return intersection_size / union_size

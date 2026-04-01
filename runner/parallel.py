@@ -21,6 +21,7 @@ def build_task_list(
 
     for algo_cfg in config["algorithms"]:
         algo_name = algo_cfg["name"]
+        algo_key = algo_cfg.get("algo", algo_name)
         algo_params = algo_cfg.get("params", {})
 
         for inst_path in instance_paths:
@@ -28,6 +29,7 @@ def build_task_list(
                 seed = seed_base + run_id
                 tasks.append({
                     "algo_name": algo_name,
+                    "algo_key": algo_key,
                     "algo_params": algo_params,
                     "instance_path": inst_path,
                     "run_id": run_id,
@@ -62,6 +64,7 @@ def run_all(
             executor.submit(
                 run_task,
                 task["algo_name"],
+                task["algo_key"],
                 task["algo_params"],
                 task["instance_path"],
                 task["run_id"],

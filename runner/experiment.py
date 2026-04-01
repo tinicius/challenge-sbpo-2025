@@ -11,6 +11,7 @@ from problems.validation import is_solution_feasible, compute_objective
 
 def run_task(
     algo_name: str,
+    algo_key: str,
     algo_params: dict,
     instance_path: str,
     run_id: int,
@@ -22,7 +23,7 @@ def run_task(
     from algorithms.registry import REGISTRY
 
     instance = load_instance(instance_path)
-    algo_cls = REGISTRY[algo_name]
+    algo_cls = REGISTRY[algo_key]
     algo = algo_cls(algo_params)
 
     start = time.perf_counter()
