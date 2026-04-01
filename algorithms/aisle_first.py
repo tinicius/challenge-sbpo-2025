@@ -179,6 +179,7 @@ class AisleFirstHeuristic(Algorithm):
 
         max_seed_aisles_cfg = self.config.get(
             "max_seed_aisles",
+            # Backward compatibility with previous config naming.
             self.config.get("max_k", MAX_SEED_AISLES),
         )
         max_seed_aisles = max(1, min(max_seed_aisles_cfg, MAX_SEED_AISLES, self.n_aisles))
@@ -195,16 +196,12 @@ class AisleFirstHeuristic(Algorithm):
                 if other_aisle == seed_aisle:
                     continue
                 other_items = aisle_items[other_aisle]
-                intersection_size = len(seed_items.intersection(other_items))
-                union_size = len(seed_items) + len(other_items) - intersection_size
-                if union_size == 0:
-                    seed_similarities[other_aisle] = 0.0
-                else:
-                    seed_similarities[other_aisle] = (
-                        intersection_size / union_size
-                    )
+                seed_similarities[other_aisle] = self._compute_jaccard_similarity(
+                    seed_items, other_items
+                )
             sorted_similar_aisles_by_seed[seed_aisle] = sorted(
                 seed_similarities.keys(),
+                # Tie-break by global aisle ranking (higher useful inventory first).
                 key=lambda idx: (seed_similarities[idx], -rank_pos[idx]),
                 reverse=True,
             )
@@ -215,10 +212,10 @@ class AisleFirstHeuristic(Algorithm):
         best_aisles: list[int] = []
 
         for seed_aisle in seed_aisles:
-            max_candidate_k = min(
+            max_aisles_for_seed = min(
                 max_seed_aisles, len(sorted_similar_aisles_by_seed[seed_aisle]) + 1
             )
-            for k in range(max_candidate_k, 0, -1):
+            for k in range(max_aisles_for_seed, 0, -1):
                 candidate_aisles = self._choose_aisles_for_k(
                     seed_aisle, sorted_similar_aisles_by_seed[seed_aisle], k
                 )
@@ -272,3 +269,11 @@ class AisleFirstHeuristic(Algorithm):
         total_items = sum(sum(inst.orders[o].values()) for o in selected_orders)
         objective = total_items / len(visited_aisles)
         return {'selected_orders': selected_orders, 'visited_aisles': visited_aisles, 'objective': objective}
+    def _compute_jaccard_similarity(
+        self, first_items: set[int], second_items: set[int]
+    ) -> float:
+        intersection_size = len(first_items.intersection(second_items))
+        union_size = len(first_items) + len(second_items) - intersection_size
+        if union_size == 0:
+            return 0.0
+        return intersection_size / union_size
