@@ -177,11 +177,14 @@ class AisleFirstHeuristic(Algorithm):
         if not ranked_aisles:
             return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
 
-        max_k_cfg = self.config.get("max_k", MAX_SEED_AISLES)
-        max_k = max(1, min(max_k_cfg, MAX_SEED_AISLES, self.n_aisles))
+        max_seed_aisles_cfg = self.config.get(
+            "max_seed_aisles",
+            self.config.get("max_k", MAX_SEED_AISLES),
+        )
+        max_seed_aisles = max(1, min(max_seed_aisles_cfg, MAX_SEED_AISLES, self.n_aisles))
 
         order_sequences = self._build_order_sequences()
-        seed_aisles = ranked_aisles[: min(max_k, len(ranked_aisles))]
+        seed_aisles = ranked_aisles[:max_seed_aisles]
         rank_pos = {aisle_idx: pos for pos, aisle_idx in enumerate(ranked_aisles)}
         aisle_items = [set(self.aisles[idx].keys()) for idx in range(self.n_aisles)]
         sorted_similar_aisles_by_seed: dict[int, list[int]] = {}
@@ -212,7 +215,10 @@ class AisleFirstHeuristic(Algorithm):
         best_aisles: list[int] = []
 
         for seed_aisle in seed_aisles:
-            for k in range(max_k, 0, -1):
+            max_candidate_k = min(
+                max_seed_aisles, len(sorted_similar_aisles_by_seed[seed_aisle]) + 1
+            )
+            for k in range(max_candidate_k, 0, -1):
                 candidate_aisles = self._choose_aisles_for_k(
                     seed_aisle, sorted_similar_aisles_by_seed[seed_aisle], k
                 )
