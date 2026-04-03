@@ -179,6 +179,12 @@ algorithms:
       max_seeds: 10
       order_strategy: random
 
+  # Hybrid
+
+  - name: order_aisle_similarity
+    algo: order_aisle_similarity
+    # deterministic: True
+
   - name: aisle_cluster_expansion
     algo: aisle_cluster_expansion
     # params:

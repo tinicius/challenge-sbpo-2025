@@ -9,6 +9,7 @@ from algorithms.lp_aisle_focus import LPAisleFocus
 from algorithms.lagrangian_relaxation import LagrangianRelaxation
 from algorithms.column_generation import ColumnGeneration
 from algorithms.min_aisle_cover import MinAisleCover
+from algorithms.order_aisle_similarity import OrderAisleSimilarity
 
 
 REGISTRY = {
@@ -16,6 +17,7 @@ REGISTRY = {
     "simple": SimpleHeuristic,
     "similar": SimilarityHeuristic,
     "aisle_first": AisleFirstHeuristic,
+    "order_aisle_similarity": OrderAisleSimilarity,
     "aisle_cluster_expansion": AisleClusterExpansion,
     "greedy_set_cover": GreedySetCover,
     # LP-based

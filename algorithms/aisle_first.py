@@ -174,7 +174,6 @@ class AisleFirstHeuristic(Algorithm):
             return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         max_seeds = self.config.get("max_seeds", 1)
-        max_aisle_group_size = self.n_aisles
 
         order_sequence = self._build_order_sequences()
 
