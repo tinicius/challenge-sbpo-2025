@@ -158,22 +158,25 @@ algorithms:
 
   # Aisle Based Heuristics
 
-  - name: aisle_first_desc
-    algo: aisle_first
-    params:
-      max_k: 5
-      order_strategy: size_desc
-
   - name: aisle_first_asc
     algo: aisle_first
+    deterministic: True
     params:
-      max_k: 5
+      max_seeds: 10
       order_strategy: size_asc
+
+  - name: aisle_first_desc
+    algo: aisle_first
+    deterministic: True
+    params:
+      max_seeds: 10
+      order_strategy: size_desc
 
   - name: aisle_first_random
     algo: aisle_first
+    deterministic: True
     params:
-      max_k: 5
+      max_seeds: 10
       order_strategy: random
 
   - name: aisle_cluster_expansion

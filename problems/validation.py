@@ -24,9 +24,11 @@ def is_solution_feasible(
         total_required = sum(
             problem.orders[order].get(item, 0) for order in selected_orders
         )
+
         total_available = sum(
             problem.aisles[aisle].get(item, 0) for aisle in visited_aisles
         )
+
         if total_required > total_available:
             return False
 

@@ -173,13 +173,12 @@ class AisleFirstHeuristic(Algorithm):
         if not ranked_aisles:
             return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
-        max_seed_aisles_cfg = self.config.get("max_k", 1)
-
-        max_seed_aisles = max(1, min(max_seed_aisles_cfg, self.n_aisles))
+        max_seeds = self.config.get("max_seeds", 1)
+        max_aisle_group_size = self.n_aisles
 
         order_sequence = self._build_order_sequences()
 
-        seed_aisles = ranked_aisles[:max_seed_aisles]
+        seed_aisles = ranked_aisles[:max_seeds]
 
         rank_pos = {aisle_idx: pos for pos, aisle_idx in enumerate(ranked_aisles)}
 
@@ -210,44 +209,54 @@ class AisleFirstHeuristic(Algorithm):
         best_aisles: list[int] = []
 
         for seed_aisle in seed_aisles:
-            max_aisles_for_seed = min(
-                max_seed_aisles, len(sorted_similar_aisles_by_seed[seed_aisle]) + 1
-            )
-            for k in range(max_aisles_for_seed, 0, -1):
+
+            k = 0
+            can_pick_one_order = False
+
+            while not can_pick_one_order:
+
                 candidate_aisles = self._choose_aisles_for_k(
                     seed_aisle, sorted_similar_aisles_by_seed[seed_aisle], k
                 )
+
                 inventory_pool = self._pool_inventory(candidate_aisles)
 
                 selected_orders, total_units = self._pack_orders_for_inventory(
                     inventory_pool, order_sequence
                 )
 
-                if total_units < self.lb:
-                    continue
+                if total_units > self.lb:
+                    can_pick_one_order = True
+                else:
+                    k += 1
 
-                cleaned_aisles = self._cleanup_redundant_aisles(
-                    selected_orders, candidate_aisles
-                )
+            if total_units < self.lb:
+                continue
 
-                if not cleaned_aisles:
-                    continue
+            cleaned_aisles = self._cleanup_redundant_aisles(
+                selected_orders, candidate_aisles
+            )
 
-                obj = total_units / len(cleaned_aisles)
+            if not cleaned_aisles:
+                continue
 
-                is_better = obj > best_obj
-                same_obj_more_units = obj == best_obj and total_units > best_total_units
-                same_obj_same_units_less_aisles = (
-                    obj == best_obj
-                    and total_units == best_total_units
-                    and (not best_aisles or len(cleaned_aisles) < len(best_aisles))
-                )
+            obj = total_units / len(cleaned_aisles)
 
-                if is_better or same_obj_more_units or same_obj_same_units_less_aisles:
-                    best_obj = obj
-                    best_total_units = total_units
-                    best_orders = selected_orders
-                    best_aisles = cleaned_aisles
+            is_better = obj > best_obj
+
+            same_obj_more_units = obj == best_obj and total_units > best_total_units
+
+            same_obj_same_units_less_aisles = (
+                obj == best_obj
+                and total_units == best_total_units
+                and (not best_aisles or len(cleaned_aisles) < len(best_aisles))
+            )
+
+            if is_better or same_obj_more_units or same_obj_same_units_less_aisles:
+                best_obj = obj
+                best_total_units = total_units
+                best_orders = selected_orders
+                best_aisles = cleaned_aisles
 
         selected_orders = best_orders
         visited_aisles = best_aisles
