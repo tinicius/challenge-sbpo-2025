@@ -67,97 +67,73 @@ def consolidate_results(
         else jsonl_stem
     )
 
-    # Build aggregated summary (only feasible runs)
+    # Build aggregated summary (all instances, including infeasible-only ones)
     csv_path = os.path.join(output_dir, f"summary_{suffix}.csv")
 
     if "algorithm" not in df.columns or "objective" not in df.columns:
         print("Missing required columns (algorithm, objective). No summary generated.")
         return ""
 
-    feasible = df[df["feasible"] == True]
-
-    if feasible.empty:
-        print("No feasible runs found. No summary generated.")
-        return ""
-
     # Determine dataset column
-    dataset_col = "dataset" if "dataset" in feasible.columns else None
+    dataset_col = "dataset" if "dataset" in df.columns else None
 
     summary_rows = []
     group_cols = ["algorithm", "instance"]
     if dataset_col:
         group_cols.insert(0, dataset_col)
 
-    for group_key, group_df in feasible.groupby(group_cols):
+    zero_stats = {k: 0 for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]}
+
+    for group_key, group_df in df.groupby(group_cols):
         if dataset_col:
             dataset, algorithm, instance = group_key
         else:
             algorithm, instance = group_key
-            # Derive dataset from instance_path if available
             if "instance_path" in group_df.columns:
                 first_path = group_df["instance_path"].iloc[0]
                 dataset = os.path.basename(os.path.dirname(first_path))
             else:
                 dataset = ""
 
-        total_runs = len(
-            df[(df["algorithm"] == algorithm) & (df["instance"] == instance)]
-        )
-        feasible_runs = len(group_df)
+        total_runs = len(group_df)
+        feasible_df = group_df[group_df["feasible"] == True]
+        feasible_runs = len(feasible_df)
+        infeasible_runs = total_runs - feasible_runs
         timed_out_runs = (
-            int(
-                df[
-                    (df["algorithm"] == algorithm)
-                    & (df["instance"] == instance)
-                    & (df.get("timed_out", pd.Series(False)) == True)
-                ].shape[0]
-            )
-            if "timed_out" in df.columns
+            int(group_df[group_df["timed_out"] == True].shape[0])
+            if "timed_out" in group_df.columns
             else 0
         )
 
-        obj_stats = _build_stats(group_df["objective"].tolist())
+        if feasible_runs > 0:
+            obj_stats = _build_stats(feasible_df["objective"].tolist())
 
-        items_values = (
-            group_df["total_items"].tolist()
-            if "total_items" in group_df.columns
-            else []
-        )
-        items_stats = (
-            _build_stats(items_values)
-            if items_values
-            else {
-                k: 0
-                for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]
-            }
-        )
+            items_values = (
+                feasible_df["total_items"].tolist()
+                if "total_items" in feasible_df.columns
+                else []
+            )
+            items_stats = _build_stats(items_values) if items_values else zero_stats
 
-        aisles_values = (
-            group_df["num_aisles"].tolist() if "num_aisles" in group_df.columns else []
-        )
-        aisles_stats = (
-            _build_stats(aisles_values)
-            if aisles_values
-            else {
-                k: 0
-                for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]
-            }
-        )
+            aisles_values = (
+                feasible_df["num_aisles"].tolist()
+                if "num_aisles" in feasible_df.columns
+                else []
+            )
+            aisles_stats = _build_stats(aisles_values) if aisles_values else zero_stats
 
-        time_col = (
-            "time_s"
-            if "time_s" in group_df.columns
-            else "exec_time" if "exec_time" in group_df.columns else None
-        )
-        time_values = group_df[time_col].tolist() if time_col else []
-        time_stats = (
-            _build_stats(time_values)
-            if time_values
-            else {
-                k: 0
-                for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]
-            }
-        )
+            time_col = (
+                "time_s"
+                if "time_s" in feasible_df.columns
+                else "exec_time" if "exec_time" in feasible_df.columns else None
+            )
+            time_values = feasible_df[time_col].tolist() if time_col else []
+            time_stats = _build_stats(time_values) if time_values else zero_stats
+        else:
+            obj_stats = zero_stats
+            items_stats = zero_stats
+            aisles_stats = zero_stats
+            time_stats = zero_stats
 
         row = {
             "dataset": dataset,
@@ -165,6 +141,7 @@ def consolidate_results(
             "instance": instance,
             "total_runs": total_runs,
             "feasible_runs": feasible_runs,
+            "infeasible_runs": infeasible_runs,
             "timed_out_runs": timed_out_runs,
         }
         for prefix, stats in [
@@ -186,11 +163,12 @@ def consolidate_results(
     )
 
     # Print summary to console
-    print("\n--- Summary (feasible runs) ---")
+    print("\n--- Summary ---")
     display_cols = [
         "algorithm",
         "instance",
         "feasible_runs",
+        "infeasible_runs",
         "objective_mean",
         "objective_max",
         "items_mean",

@@ -24,19 +24,40 @@ def build_task_list(
         algo_key = algo_cfg.get("algo", algo_name)
         algo_params = algo_cfg.get("params", {})
 
+        is_deterministic = algo_cfg.get("deterministic", False)
+
         for inst_path in instance_paths:
+
+            if is_deterministic:
+                seed = seed_base
+                tasks.append(
+                    {
+                        "algo_name": algo_name,
+                        "algo_key": algo_key,
+                        "algo_params": algo_params,
+                        "instance_path": inst_path,
+                        "run_id": 0,
+                        "seed": seed,
+                        "result_path": result_path,
+                        "time_limit": time_limit,
+                    }
+                )
+                continue
+
             for run_id in range(repetitions):
                 seed = seed_base + run_id
-                tasks.append({
-                    "algo_name": algo_name,
-                    "algo_key": algo_key,
-                    "algo_params": algo_params,
-                    "instance_path": inst_path,
-                    "run_id": run_id,
-                    "seed": seed,
-                    "result_path": result_path,
-                    "time_limit": time_limit,
-                })
+                tasks.append(
+                    {
+                        "algo_name": algo_name,
+                        "algo_key": algo_key,
+                        "algo_params": algo_params,
+                        "instance_path": inst_path,
+                        "run_id": run_id,
+                        "seed": seed,
+                        "result_path": result_path,
+                        "time_limit": time_limit,
+                    }
+                )
 
     return tasks
 

@@ -32,6 +32,15 @@ class SimpleHeuristic(Algorithm):
 
         seed = shuffled_indexes(self.n_orders)
 
+        if self.config.get("order") is not None:
+            order = self.config["order"]
+
+            seed = sorted(
+                seed,
+                key=lambda idx: sum(self.orders[idx].values()),
+                reverse=(order == "asc"),
+            )
+
         greedy = self.config["greedy"]
 
         if not greedy:
@@ -63,7 +72,7 @@ class SimpleHeuristic(Algorithm):
                     stock[idx] = stock.get(idx, 0) - qnt
 
         if total_units < self.lb:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         demand: dict[int, int] = {}
 
@@ -79,8 +88,12 @@ class SimpleHeuristic(Algorithm):
             visited_aisles = greedy_aisle_select(demand, self.aisles)
 
         if not selected_orders or not visited_aisles:
-            return {'selected_orders': [], 'visited_aisles': [], 'objective': 0.0}
+            return {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
         total_items = sum(sum(inst.orders[o].values()) for o in selected_orders)
         objective = total_items / len(visited_aisles)
-        return {'selected_orders': selected_orders, 'visited_aisles': visited_aisles, 'objective': objective}
+        return {
+            "selected_orders": selected_orders,
+            "visited_aisles": visited_aisles,
+            "objective": objective,
+        }

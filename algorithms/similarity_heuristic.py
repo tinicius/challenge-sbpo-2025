@@ -31,24 +31,32 @@ class SimilarityHeuristic(Algorithm):
         self.ub = inst.ub
         self.config = self.params
 
-        reverse = self.config["reverse"] == "True"
+        reverse = self.config["reverse"] == "true"
 
         greedy = self.config["greedy"]
+
+        seed = shuffled_indexes(self.n_orders)
+
+        first_order = self.orders[seed[0]]
+
+        if self.config.get("first_order") is not None:
+            first_order_type = self.config["first_order"]
+
+            if first_order_type == "bigger":
+                first_order = max(self.orders, key=lambda o: sum(o.values()))
+            elif first_order_type == "smaller":
+                first_order = min(self.orders, key=lambda o: sum(o.values()))
 
         if not greedy:
             raise ValueError(
                 "Greedy flag not provided in config for SimilarityHeuristic"
             )
 
-        seed = shuffled_indexes(self.n_orders)
-
         stock: dict[int, int] = {}
 
         for aisle in self.aisles:
             for item, qty in aisle.items():
                 stock[item] = stock.get(item, 0) + qty
-
-        first_order = self.orders[seed[0]]
 
         sorted_orders = sorted(
             seed,

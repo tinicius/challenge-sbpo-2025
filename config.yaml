@@ -4,7 +4,7 @@
 instance_dir: datasets/a
 
 # Number of repetitions per (algorithm, instance) pair
-repetitions: 1
+repetitions: 30
 
 # Base seed for reproducibility (run i uses seed_base + i)
 seed_base: 42
@@ -13,7 +13,7 @@ seed_base: 42
 max_workers: null
 
 # Time limit per solver run in seconds (null = no limit)
-time_limit: 10
+time_limit: 20
 
 # Output directory for results
 result_dir: results
@@ -23,15 +23,48 @@ save_output: True
 
 algorithms:
   # --- Greedy heuristics ---
-  - name: simple
+
+  # Simple greedy heuristic
+
+  - name: random
     algo: simple
     params:
       greedy: simple
 
-  - name: simple_multi
+  - name: random_multi
     algo: simple
     params:
       greedy: multi
+
+  - name: smaller
+    algo: simple
+    deterministic: True
+    params:
+      order: asc
+      greedy: simple
+
+  - name: smaller_multi
+    algo: simple
+    deterministic: True
+    params:
+      order: asc
+      greedy: multi
+
+  - name: bigger
+    algo: simple
+    deterministic: True
+    params:
+      order: desc
+      greedy: simple
+
+  - name: bigger_multi
+    algo: simple
+    deterministic: True
+    params:
+      order: desc
+      greedy: multi
+
+  # Similarity-based heuristic
 
   - name: similar
     algo: similar
@@ -44,6 +77,40 @@ algorithms:
     params:
       greedy: multi
       reverse: True
+    
+  - name: similar_smaller
+    algo: similar
+    deterministic: True
+    params:
+      greedy: simple
+      first_order: smaller
+      reverse: True
+
+  - name: similar_smaller_multi
+    algo: similar
+    deterministic: True
+    params:
+      greedy: multi
+      first_order: smaller
+      reverse: True
+
+  - name: similar_bigger
+    algo: similar
+    deterministic: True
+    params:
+      greedy: simple
+      first_order: bigger
+      reverse: True
+
+  - name: similar_bigger_multi
+    algo: similar
+    deterministic: True
+    params:
+      greedy: multi
+      first_order: bigger
+      reverse: True
+
+  # Diff-based heuristic
 
   - name: diff
     algo: similar
@@ -56,6 +123,40 @@ algorithms:
     params:
       greedy: multi
       reverse: False
+
+  - name: diff_smaller
+    algo: similar
+    deterministic: True
+    params:
+      greedy: simple
+      first_order: smaller
+      reverse: False
+
+  - name: diff_smaller_multi
+    algo: similar
+    deterministic: True
+    params:
+      greedy: multi
+      first_order: smaller
+      reverse: False
+
+  - name: diff_bigger
+    algo: similar
+    deterministic: True
+    params:
+      greedy: simple
+      first_order: bigger
+      reverse: False
+
+  - name: diff_bigger_multi
+    algo: similar
+    deterministic: True
+    params:
+      greedy: multi
+      first_order: bigger
+      reverse: False
+
+  # Aisle Based Heuristics
 
   - name: aisle_first_desc
     algo: aisle_first
