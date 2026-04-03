@@ -205,6 +205,18 @@ algorithms:
   - name: greedy_set_cover
     algo: greedy_set_cover
 
+  - name: knapsack
+    algo: knapsack
+    deterministic: True
+
+  - name: knapsack_seed
+    algo: knapsack_seed
+    deterministic: True
+
+  - name: knapsack_density
+    algo: knapsack_density
+    deterministic: True
+
   - name: lp_aisle_focus
     algo: lp_aisle_focus
 

@@ -5,6 +5,9 @@ from algorithms.similarity_heuristic import SimilarityHeuristic
 from algorithms.aisle_first import AisleFirstHeuristic
 from algorithms.aisle_cluster_expansion import AisleClusterExpansion
 from algorithms.greedy_set_cover import GreedySetCover
+from algorithms.knapsack_density import KnapsackDensitySolver
+from algorithms.knapsack_seed import KnapsackSeedSolver
+from algorithms.knapsack_solver import KnapsackSolver
 from algorithms.lp_aisle_focus import LPAisleFocus
 from algorithms.lagrangian_relaxation import LagrangianRelaxation
 from algorithms.column_generation import ColumnGeneration
@@ -20,6 +23,10 @@ REGISTRY = {
     "order_aisle_similarity": OrderAisleSimilarity,
     "aisle_cluster_expansion": AisleClusterExpansion,
     "greedy_set_cover": GreedySetCover,
+    # Knapsack-based
+    "knapsack": KnapsackSolver,
+    "knapsack_seed": KnapsackSeedSolver,
+    "knapsack_density": KnapsackDensitySolver,
     # LP-based
     "lp_aisle_focus": LPAisleFocus,
     "column_generation": ColumnGeneration,
