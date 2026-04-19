@@ -3,10 +3,12 @@ import random
 from algorithms.base import Algorithm
 from algorithms.utils.greedy_aisle_select import greedy_aisle_select
 from algorithms.utils.multi_greedy_aisle_select import multi_greedy_aisle_select
+from algorithms.utils.similarity import similarity
 from problems.base import ProblemInput
 
-_VALID_ORDER = {None, "asc", "desc"}
+_VALID_ORDER = {None, "asc", "desc", "similar", "diff"}
 _VALID_GREEDY = {"simple", "multi"}
+_VALID_FIRST_ORDER = {None, "smaller", "bigger"}
 
 _EMPTY_RESULT = {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
@@ -26,8 +28,22 @@ class SimpleHeuristic(Algorithm):
                 f"SimpleHeuristic: invalid 'greedy'={greedy!r}; "
                 f"expected one of {sorted(_VALID_GREEDY)}"
             )
+        first_order = params.get("first_order")
+        if first_order not in _VALID_FIRST_ORDER:
+            raise ValueError(
+                f"SimpleHeuristic: invalid 'first_order'={first_order!r}; "
+                f"expected one of {sorted(v for v in _VALID_FIRST_ORDER if v)} or unset"
+            )
+        similarity_weighted = params.get("similarity_weighted", False)
+        if not isinstance(similarity_weighted, bool):
+            raise ValueError(
+                f"SimpleHeuristic: invalid 'similarity_weighted'={similarity_weighted!r}; "
+                f"expected bool"
+            )
         self._order = order
         self._greedy = greedy
+        self._first_order = first_order
+        self._similarity_weighted = similarity_weighted
         self._seed = params.get("seed")
 
     @property
@@ -40,7 +56,7 @@ class SimpleHeuristic(Algorithm):
         lb, ub = instance.lb, instance.ub
 
         order_sizes = [sum(o.values()) for o in orders]
-        indices = self._build_traversal(instance.nOrders, order_sizes)
+        indices = self._build_traversal(instance.nOrders, order_sizes, orders)
 
         stock = self._aggregate_stock(aisles)
         selected_orders, demand, total_units = self._pick_orders(
@@ -64,17 +80,46 @@ class SimpleHeuristic(Algorithm):
             "objective": total_units / len(visited_aisles),
         }
 
-    def _build_traversal(self, n_orders: int, order_sizes: list[int]) -> list[int]:
+    def _build_traversal(
+        self,
+        n_orders: int,
+        order_sizes: list[int],
+        orders: list[dict[int, int]],
+    ) -> list[int]:
         if self._order is None:
             rng = random.Random(self._seed) if self._seed is not None else random
             indices = list(range(n_orders))
             rng.shuffle(indices)
             return indices
+        if self._order in {"similar", "diff"}:
+            reference = self._pick_first_order(n_orders, order_sizes, orders)
+            return sorted(
+                range(n_orders),
+                key=lambda i: similarity(
+                    reference, orders[i], weighted=self._similarity_weighted
+                ),
+                reverse=(self._order == "similar"),
+            )
         return sorted(
             range(n_orders),
             key=order_sizes.__getitem__,
             reverse=(self._order == "desc"),
         )
+
+    def _pick_first_order(
+        self,
+        n_orders: int,
+        order_sizes: list[int],
+        orders: list[dict[int, int]],
+    ) -> dict[int, int]:
+        if self._first_order == "bigger":
+            return orders[max(range(n_orders), key=order_sizes.__getitem__)]
+        if self._first_order == "smaller":
+            return orders[min(range(n_orders), key=order_sizes.__getitem__)]
+        rng = random.Random(self._seed) if self._seed is not None else random
+        indices = list(range(n_orders))
+        rng.shuffle(indices)
+        return orders[indices[0]]
 
     @staticmethod
     def _aggregate_stock(aisles: list[dict[int, int]]) -> dict[int, int]:
