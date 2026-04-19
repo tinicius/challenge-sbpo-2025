@@ -1,5 +1,6 @@
 from algorithms.base import Algorithm
 from algorithms.utils.multi_greedy_aisle_select import multi_greedy_aisle_select
+from algorithms.utils.ilp_aisle_select import solve_min_aisle_cover
 from algorithms.utils.greedy_aisle_select import greedy_aisle_select
 from algorithms.utils.shuffled_indexes import shuffled_indexes
 from problems.base import ProblemInput
@@ -84,6 +85,8 @@ class SimpleHeuristic(Algorithm):
 
         if greedy == "multi":
             visited_aisles = multi_greedy_aisle_select(demand, self.aisles)
+        elif greedy == "exact":
+            visited_aisles = solve_min_aisle_cover(demand, self.aisles).selected_aisles
         else:
             visited_aisles = greedy_aisle_select(demand, self.aisles)
 

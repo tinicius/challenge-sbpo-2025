@@ -1,4 +1,5 @@
 from algorithms.base import Algorithm
+from algorithms.utils.ilp_order_select import solve_max_order_select
 from problems.base import ProblemInput
 
 
@@ -165,6 +166,9 @@ class AisleFirstHeuristic(Algorithm):
         self.lb = inst.lb
         self.ub = inst.ub
         self.config = self.params
+        use_exact_order_select: bool = bool(
+            self.config.get("use_exact_order_select", False)
+        )
 
         total_demand = self._build_total_demand()
         ranked_scores = self._score_aisles(total_demand)
@@ -211,6 +215,7 @@ class AisleFirstHeuristic(Algorithm):
 
             k = 0
             can_pick_one_order = False
+            max_k = len(sorted_similar_aisles_by_seed[seed_aisle]) + 1
 
             while not can_pick_one_order:
 
@@ -220,12 +225,28 @@ class AisleFirstHeuristic(Algorithm):
 
                 inventory_pool = self._pool_inventory(candidate_aisles)
 
-                selected_orders, total_units = self._pack_orders_for_inventory(
-                    inventory_pool, order_sequence
-                )
+                if use_exact_order_select:
+                    selected_orders = solve_max_order_select(
+                        inventory_pool,
+                        self.orders,
+                        self.lb,
+                        self.ub,
+                        time_limit_seconds=float(
+                            self.config.get("order_select_time_limit", 10.0)
+                        ),
+                    )
+                    total_units = sum(
+                        sum(self.orders[o].values()) for o in selected_orders
+                    )
+                else:
+                    selected_orders, total_units = self._pack_orders_for_inventory(
+                        inventory_pool, order_sequence
+                    )
 
-                if total_units > self.lb:
+                if total_units >= self.lb:
                     can_pick_one_order = True
+                elif k >= max_k:
+                    break
                 else:
                     k += 1
 
