@@ -46,7 +46,15 @@ def run_task(
             result = algo.solve(instance)
         except _Timeout:
             timed_out = True
-            result = {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
+            partial = getattr(algo, "last_best", None)
+            if isinstance(partial, dict) and partial.get("selected_orders"):
+                result = {
+                    "selected_orders": partial["selected_orders"],
+                    "visited_aisles": partial["visited_aisles"],
+                    "objective": partial.get("objective", 0.0),
+                }
+            else:
+                result = {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
         finally:
             signal.setitimer(signal.ITIMER_REAL, 0)
             signal.signal(signal.SIGALRM, prev)

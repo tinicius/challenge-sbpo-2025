@@ -1,0 +1,41 @@
+# GRASP local_search sweep (OFAT)
+# Varies: local_search ∈ {none, swap, full}
+# Fixed baseline: alpha=0.3, construction_score=size, max_iterations=20,
+#                 greedy=multi, similarity_weighted=false
+# Answers: how much does LS add on top of multistart? swap vs full trade-off?
+
+instance_dir: datasets/a
+repetitions: 5
+seed_base: 42
+max_workers: null
+time_limit: 20
+result_dir: results
+save_output: true
+
+algorithms:
+  - name: grasp_ls_none
+    algo: grasp
+    params:
+      alpha: 0.3
+      construction_score: size
+      max_iterations: 20
+      greedy: multi
+      local_search: none
+
+  - name: grasp_ls_swap
+    algo: grasp
+    params:
+      alpha: 0.3
+      construction_score: size
+      max_iterations: 20
+      greedy: multi
+      local_search: swap
+
+  - name: grasp_ls_full
+    algo: grasp
+    params:
+      alpha: 0.3
+      construction_score: size
+      max_iterations: 20
+      greedy: multi
+      local_search: full

@@ -1,0 +1,127 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Full parameter grid for algorithm: seed
+
+instance_dir: datasets/a
+repetitions: 5
+seed_base: 42
+max_workers: null
+time_limit: 20
+result_dir: results
+save_output: true
+
+algorithms:
+  # --- biggest seed ---
+  - name: seed_biggest_minaisles_simple
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: biggest
+      synergy: min_new_aisles
+      greedy: simple
+  - name: seed_biggest_minaisles_multi
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: biggest
+      synergy: min_new_aisles
+      greedy: multi
+  - name: seed_biggest_similarity_simple
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: biggest
+      synergy: max_similarity
+      greedy: simple
+  - name: seed_biggest_similarity_multi
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: biggest
+      synergy: max_similarity
+      greedy: multi
+
+  # --- smallest seed ---
+  - name: seed_smallest_minaisles_simple
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: smallest
+      synergy: min_new_aisles
+      greedy: simple
+  - name: seed_smallest_minaisles_multi
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: smallest
+      synergy: min_new_aisles
+      greedy: multi
+  - name: seed_smallest_similarity_simple
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: smallest
+      synergy: max_similarity
+      greedy: simple
+  - name: seed_smallest_similarity_multi
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: smallest
+      synergy: max_similarity
+      greedy: multi
+
+  # --- most_shared seed ---
+  - name: seed_shared_minaisles_simple
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: most_shared
+      synergy: min_new_aisles
+      greedy: simple
+  - name: seed_shared_minaisles_multi
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: most_shared
+      synergy: min_new_aisles
+      greedy: multi
+  - name: seed_shared_similarity_simple
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: most_shared
+      synergy: max_similarity
+      greedy: simple
+  - name: seed_shared_similarity_multi
+    algo: seed
+    deterministic: true
+    params:
+      seed_strategy: most_shared
+      synergy: max_similarity
+      greedy: multi
+
+  # --- random seed (non-deterministic, repeats with different seeds) ---
+  - name: seed_random_minaisles_simple
+    algo: seed
+    params:
+      seed_strategy: random
+      synergy: min_new_aisles
+      greedy: simple
+  - name: seed_random_minaisles_multi
+    algo: seed
+    params:
+      seed_strategy: random
+      synergy: min_new_aisles
+      greedy: multi
+  - name: seed_random_similarity_simple
+    algo: seed
+    params:
+      seed_strategy: random
+      synergy: max_similarity
+      greedy: simple
+  - name: seed_random_similarity_multi
+    algo: seed
+    params:
+      seed_strategy: random
+      synergy: max_similarity
+      greedy: multi

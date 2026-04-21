@@ -1,0 +1,81 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Parameter grid for algorithm: sa (Simulated Annealing)
+
+instance_dir: datasets/a
+repetitions: 5
+seed_base: 42
+max_workers: null
+time_limit: 20
+result_dir: results
+save_output: true
+
+algorithms:
+  # --- baseline: greedy init + swap-only, geometric cooling ---
+  - name: sa_greedy_swap_geo
+    algo: sa
+    params:
+      init: greedy
+      moves: [swap]
+      cooling: geometric
+      initial_temp: 1.0
+      cooling_rate: 0.995
+      min_temp: 0.001
+      max_iterations: 2000
+      greedy: multi
+
+  # --- full moves (swap + drop + add), geometric cooling, GRASP init ---
+  - name: sa_grasp_full_geo
+    algo: sa
+    params:
+      init: grasp
+      init_alpha: 0.3
+      init_construction: size
+      moves: [swap, drop, add]
+      cooling: geometric
+      initial_temp: 2.0
+      cooling_rate: 0.995
+      min_temp: 0.001
+      max_iterations: 3000
+      greedy: multi
+
+  # --- linear cooling variant, greedy init ---
+  - name: sa_greedy_full_linear
+    algo: sa
+    params:
+      init: greedy
+      moves: [swap, drop, add]
+      cooling: linear
+      initial_temp: 1.0
+      cooling_rate: 0.0005
+      min_temp: 0.001
+      max_iterations: 2000
+      greedy: multi
+
+  # --- aggressive cooling, fewer iterations ---
+  - name: sa_greedy_full_fast
+    algo: sa
+    params:
+      init: greedy
+      moves: [swap, drop, add]
+      cooling: geometric
+      initial_temp: 0.5
+      cooling_rate: 0.99
+      min_temp: 0.001
+      max_iterations: 1500
+      greedy: multi
+
+  # --- synergy-guided GRASP init + full moves ---
+  - name: sa_grasp_synergy_full_geo
+    algo: sa
+    params:
+      init: grasp
+      init_alpha: 0.3
+      init_construction: synergy
+      similarity_weighted: false
+      moves: [swap, drop, add]
+      cooling: geometric
+      initial_temp: 2.0
+      cooling_rate: 0.995
+      min_temp: 0.001
+      max_iterations: 2000
+      greedy: multi
