@@ -5,7 +5,7 @@ instance_dir: datasets/a
 repetitions: 5
 seed_base: 42
 max_workers: null
-time_limit: 20
+time_limit: 90
 result_dir: results
 save_output: true
 

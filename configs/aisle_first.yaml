@@ -2,10 +2,10 @@
 # Full parameter grid for algorithm: aisle_first
 
 instance_dir: datasets/a
-repetitions: 5
+repetitions: 20
 seed_base: 42
 max_workers: null
-time_limit: 20
+time_limit: 60
 result_dir: results
 save_output: true
 

@@ -1,0 +1,95 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Parameter grid for algorithm: grasp
+
+instance_dir: datasets/a
+repetitions: 5
+seed_base: 42
+max_workers: null
+time_limit: 90
+result_dir: results
+save_output: true
+
+algorithms:
+  # --- ablation: randomized-greedy multi-start, no local search ---
+  - name: grasp_size_a03_nols
+    algo: grasp_cpp
+    params:
+      alpha: 0.3
+      construction_score: size
+      max_iterations: 100
+      greedy: simple
+      local_search: none
+
+  # --- swap-only local search, size scoring, alpha sweep ---
+  - name: grasp_size_a01_swap
+    algo: grasp_cpp
+    params:
+      alpha: 0.1
+      construction_score: size
+      max_iterations: 20
+      greedy: multi
+      local_search: swap
+  - name: grasp_size_a03_swap
+    algo: grasp_cpp
+    params:
+      alpha: 0.3
+      construction_score: size
+      max_iterations: 20
+      greedy: multi
+      local_search: swap
+  - name: grasp_size_a05_swap
+    algo: grasp_cpp
+    params:
+      alpha: 0.5
+      construction_score: size
+      max_iterations: 20
+      greedy: multi
+      local_search: swap
+
+  # --- full local search (swap + drop + add), synergy scoring ---
+  - name: grasp_synergy_a03_full
+    algo: grasp_cpp
+    params:
+      alpha: 0.3
+      construction_score: synergy
+      max_iterations: 20
+      greedy: multi
+      local_search: full
+      similarity_weighted: false
+  - name: grasp_synergy_a05_full
+    algo: grasp_cpp
+    params:
+      alpha: 0.5
+      construction_score: synergy
+      max_iterations: 20
+      greedy: multi
+      local_search: full
+      similarity_weighted: false
+
+  # --- aisle-cost scoring (expensive per step; fewer iterations) ---
+  - name: grasp_aisle_a02_full
+    algo: grasp_cpp
+    params:
+      alpha: 0.2
+      construction_score: aisle_cost
+      max_iterations: 10
+      greedy: multi
+      local_search: full
+
+  # --- aisle-cost-fast: cheap O(|order|) proxy, enables many iterations ---
+  - name: grasp_aisle_fast_a02_full
+    algo: grasp_cpp
+    params:
+      alpha: 0.2
+      construction_score: aisle_cost_fast
+      max_iterations: 20
+      greedy: multi
+      local_search: full
+  - name: grasp_aisle_fast_a03_swap
+    algo: grasp_cpp
+    params:
+      alpha: 0.3
+      construction_score: aisle_cost_fast
+      max_iterations: 30
+      greedy: multi
+      local_search: swap

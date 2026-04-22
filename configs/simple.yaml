@@ -4,7 +4,7 @@
 instance_dir: datasets/a
 
 # Number of repetitions per (algorithm, instance) pair
-repetitions: 5
+repetitions: 30
 
 # Base seed for reproducibility (run i uses seed_base + i)
 seed_base: 42
@@ -13,7 +13,7 @@ seed_base: 42
 max_workers: null
 
 # Time limit per solver run in seconds (null = no limit)
-time_limit: 20
+time_limit: 90
 
 # Output directory for results
 result_dir: results

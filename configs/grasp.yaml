@@ -2,10 +2,10 @@
 # Parameter grid for algorithm: grasp
 
 instance_dir: datasets/a
-repetitions: 1
+repetitions: 5
 seed_base: 42
 max_workers: null
-time_limit: 30
+time_limit: 90
 result_dir: results
 save_output: true
 

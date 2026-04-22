@@ -1,0 +1,118 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Parameter grid for algorithm: aisle_grasp (aisle-centric GRASP).
+#
+# Each iteration runs an aisle_first-style prefix sweep where the next aisle
+# to expand is drawn from an RCL (alpha-wide). Scoring can be static (pre-rank
+# once using `aisle_score` vs aggregate demand) or adaptive (rescore each step
+# against the unmet-demand gap).
+
+instance_dir: datasets/a
+repetitions: 1
+seed_base: 42
+max_workers: null
+time_limit: 90
+result_dir: results
+save_output: true
+
+algorithms:
+  # --- ablation: multi-start randomized greedy only, no local search ---
+  - name: ag_static_useful_a03_nols
+    algo: aisle_grasp
+    params:
+      alpha: 0.3
+      scoring: static
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 30
+      greedy: simple
+      local_search_aisle: none
+      local_search_order: none
+
+  # --- adaptive scoring baseline, no local search ---
+  - name: ag_adaptive_useful_a03_nols
+    algo: aisle_grasp
+    params:
+      alpha: 0.3
+      scoring: adaptive
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 30
+      greedy: simple
+      local_search_aisle: none
+      local_search_order: none
+
+  # --- aisle-level local search only (swap + drop + add) ---
+  - name: ag_static_useful_a02_aisle_full
+    algo: aisle_grasp
+    params:
+      alpha: 0.2
+      scoring: static
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 20
+      greedy: multi
+      local_search_aisle: full
+      local_search_order: none
+
+  - name: ag_adaptive_useful_a02_aisle_full
+    algo: aisle_grasp
+    params:
+      alpha: 0.2
+      scoring: adaptive
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 20
+      greedy: multi
+      local_search_aisle: full
+      local_search_order: none
+
+  # --- order-level local search only (reuses GRASP's swap/drop/add) ---
+  - name: ag_static_useful_a02_order_full
+    algo: aisle_grasp
+    params:
+      alpha: 0.2
+      scoring: static
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 20
+      greedy: multi
+      local_search_aisle: none
+      local_search_order: full
+
+  # --- combined: aisle-level first, then order-level ---
+  - name: ag_static_useful_a02_combined
+    algo: aisle_grasp
+    params:
+      alpha: 0.2
+      scoring: static
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 20
+      greedy: multi
+      local_search_aisle: full
+      local_search_order: full
+
+  - name: ag_adaptive_useful_a02_combined
+    algo: aisle_grasp
+    params:
+      alpha: 0.2
+      scoring: adaptive
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 20
+      greedy: multi
+      local_search_aisle: full
+      local_search_order: full
+
+  # --- alpha = 0.1 (greedier RCL) combined variant ---
+  - name: ag_static_useful_a01_combined
+    algo: aisle_grasp
+    params:
+      alpha: 0.1
+      scoring: static
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 20
+      greedy: multi
+      local_search_aisle: full
+      local_search_order: full

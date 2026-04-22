@@ -36,3 +36,15 @@ algorithms:
     params:
       order: desc
       greedy: multi
+
+  - name: aisle_grasp
+    algo: aisle_grasp
+    params:
+      alpha: 0.3
+      scoring: adaptive
+      aisle_score: useful
+      packing_order: desc
+      max_iterations: 20
+      greedy: multi
+      local_search_aisle: full
+      local_search_order: full
