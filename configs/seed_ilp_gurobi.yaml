@@ -1,0 +1,58 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Seed heuristic with minimum-aisle ILP solved by Gurobi
+
+instance_dir: datasets/a
+repetitions: 5
+seed_base: 42
+max_workers: null
+time_limit: 90
+result_dir: results
+save_output: true
+
+algorithms:
+  - name: seed_ilp_gurobi_most_distinct
+    algo: seed_ilp_gurobi
+    deterministic: true
+    params:
+      seed_strategy: most_distinct_items
+      gurobi_time_limit: 30
+      gurobi_threads: 0
+
+  - name: seed_ilp_gurobi_least_distinct
+    algo: seed_ilp_gurobi
+    deterministic: true
+    params:
+      seed_strategy: least_distinct_items
+      gurobi_time_limit: 30
+      gurobi_threads: 0
+
+  - name: seed_ilp_gurobi_most_total
+    algo: seed_ilp_gurobi
+    deterministic: true
+    params:
+      seed_strategy: most_total_items
+      gurobi_time_limit: 30
+      gurobi_threads: 0
+
+  - name: seed_ilp_gurobi_least_total
+    algo: seed_ilp_gurobi
+    deterministic: true
+    params:
+      seed_strategy: least_total_items
+      gurobi_time_limit: 30
+      gurobi_threads: 0
+
+  - name: af_useful_order-desc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: useful
+      order: desc
+      prune: multi
+  
+  - name: bigger_multi
+    algo: simple
+    deterministic: True
+    params:
+      order: desc
+      greedy: multi

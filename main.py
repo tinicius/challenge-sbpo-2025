@@ -1,15 +1,15 @@
-from algorithms.order_aisle_similarity import OrderAisleSimilarity
-from algorithms.simple.simple_heuristic import SimpleHeuristic
+from algorithms.seed.seed_ilp_gurobi_heuristic import SeedIlpGurobiHeuristic
 from problems.base import ProblemInput, load_instance
 
-instance_path = "datasets/a/instance_0013.txt"
+instance_path = "datasets/a/instance_0004.txt"
 
 instance = load_instance(instance_path)
 
-solver = SimpleHeuristic(
+solver = SeedIlpGurobiHeuristic(
     {
-        "order": "desc",
-        "greedy": "multi",
+        "seed_strategy": "least_distinct_items",
+        "gurobi_time_limit": "30",
+        "gurobi_threads": "0",
     }
 )
 
