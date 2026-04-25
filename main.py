@@ -1,6 +1,6 @@
 import multiprocessing
 from algorithms.ga.ga_heuristic import GeneticAlgorithm
-from algorithms.ga.ga_heuristic_aisle import AisleBasedGeneticAlgorithm
+from algorithms.ga.ga_heuristic_full import GeneticAlgorithmFull
 from algorithms.aisle_first.aisle_first_heuristic import AisleFirstHeuristic
 from algorithms.simple.simple_heuristic import SimpleHeuristic
 
@@ -43,25 +43,25 @@ def run_with_timeout(solver, instance, timeout=90):
 
 
 if __name__ == "__main__":
-    instance_path = "datasets/a/instance_0020.txt"
+    instance_path = "datasets/a/instance_0001.txt"
     instance = load_instance(instance_path)
 
-    # ga_random = GeneticAlgorithm(
-    #     {
-    #         "variant": "BaseGA",
-    #         "pop_size": 50,
-    #         "epoch": 300,
-    #         "pc": 0.9,
-    #         "pm": 0.05,
-    #         "selection": "tournament",
-    #         "crossover": "uniform",
-    #         "mutation": "flip",
-    #         "k_way": 0.2,
-    #         "aisle_selector": "multi",
-    #         "seed_with_heuristics": True,
-    #         "start": "random",
-    #     }
-    # )
+    ga_full = GeneticAlgorithmFull(
+        {
+            "variant": "BaseGA",
+            "pop_size": 50,
+            "epoch": 300,
+            "pc": 0.9,
+            "pm": 0.05,
+            "selection": "tournament",
+            "crossover": "uniform",
+            "mutation": "flip",
+            "k_way": 0.2,
+            "aisle_selector": "multi",
+            "seed_with_heuristics": True,
+            "start": "useful_seed_aisle",
+        }
+    )
 
     ga_aisle = GeneticAlgorithm(
         {
@@ -87,8 +87,8 @@ if __name__ == "__main__":
     TIMEOUT_SECONDS = 90
 
     print("Executando 1...")
-    # result = run_with_timeout(ga_random, instance, TIMEOUT_SECONDS)
-    # print("Result GA Random:", result["objective"] if result else "Timeout!")
+    result = run_with_timeout(ga_full, instance, TIMEOUT_SECONDS)
+    print("Result GA Full:", result["objective"] if result else "Timeout!")
 
     print("Executando 2...")
     result2 = run_with_timeout(ga_aisle, instance, TIMEOUT_SECONDS)

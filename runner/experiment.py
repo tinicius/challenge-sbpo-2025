@@ -32,7 +32,7 @@ def run_task(
     if time_limit is not None:
         import signal
 
-        class _Timeout(Exception):
+        class _Timeout(BaseException):
             pass
 
         def _handler(_signum, _frame):

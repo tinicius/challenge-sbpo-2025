@@ -13,7 +13,7 @@ seed_base: 42
 max_workers: null
 
 # Time limit per solver run in seconds (null = no limit)
-time_limit: 180
+time_limit: 300
 
 # Output directory for results
 result_dir: results
@@ -53,21 +53,21 @@ algorithms:
   #     seed_with_heuristics: true
   #     start: random
 
-  - name: ga_base_uniform_seeded_aisle
-    algo: ga
-    params:
-      variant: BaseGA
-      pop_size: 50
-      epoch: 300
-      pc: 0.9
-      pm: 0.05
-      selection: tournament
-      crossover: uniform
-      mutation: flip
-      k_way: 0.2
-      aisle_selector: multi
-      seed_with_heuristics: true
-      start: seed_aisle
+  # - name: ga_base_uniform_seeded_aisle
+  #   algo: ga
+  #   params:
+  #     variant: BaseGA
+  #     pop_size: 50
+  #     epoch: 300
+  #     pc: 0.9
+  #     pm: 0.05
+  #     selection: tournament
+  #     crossover: uniform
+  #     mutation: flip
+  #     k_way: 0.2
+  #     aisle_selector: multi
+  #     seed_with_heuristics: true
+  #     start: seed_aisle
 
   - name: ga_base_uniform_seeded_useful_aisle
     algo: ga
@@ -83,4 +83,36 @@ algorithms:
       k_way: 0.2
       aisle_selector: multi
       seed_with_heuristics: true
+      start: seed_aisle
+
+  - name: ga_full
+    algo: ga_full
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      aisle_selector: multi
+      seed_with_heuristics: true
       start: useful_seed_aisle
+
+  # - name: ga_full_25
+  #   algo: ga_full
+  #   params:
+  #     variant: BaseGA
+  #     pop_size: 25
+  #     epoch: 300
+  #     pc: 0.9
+  #     pm: 0.05
+  #     selection: tournament
+  #     crossover: uniform
+  #     mutation: flip
+  #     k_way: 0.2
+  #     aisle_selector: multi
+  #     seed_with_heuristics: true
+  #     start: useful_seed_aisle

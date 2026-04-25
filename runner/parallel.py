@@ -107,6 +107,12 @@ def run_all(
                     if result["timed_out"]:
                         status = "TIMEOUT"
 
+                    if status in ("TIMEOUT", "INFEASIBLE"):
+                        tqdm.write(
+                            f"[{status}] {result['algorithm']}/{result['instance']} "
+                            f"(run={result['run_id']}, seed={result['seed']})"
+                        )
+
                     pbar.set_postfix_str(
                         f"{result['algorithm']}/{result['instance']} "
                         f"obj={result['objective']:.2f} [{status}]"
