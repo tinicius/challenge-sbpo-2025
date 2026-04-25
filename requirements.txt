@@ -2,3 +2,4 @@ numpy==2.2.1
 pandas==3.0.1
 ortools>=9.9
 gurobipy>=11.0
+mealpy==3.0.3

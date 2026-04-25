@@ -4,7 +4,7 @@
 instance_dir: datasets/a
 
 # Number of repetitions per (algorithm, instance) pair
-repetitions: 5
+repetitions: 1
 
 # Base seed for reproducibility (run i uses seed_base + i)
 seed_base: 42
@@ -13,7 +13,7 @@ seed_base: 42
 max_workers: null
 
 # Time limit per solver run in seconds (null = no limit)
-time_limit: 20
+time_limit: 180
 
 # Output directory for results
 result_dir: results
@@ -30,21 +30,57 @@ algorithms:
       order: desc
       prune: multi
   
-  - name: bigger_multi
-    algo: simple
-    deterministic: True
-    params:
-      order: desc
-      greedy: multi
+  # - name: bigger_multi
+  #   algo: simple
+  #   deterministic: True
+  #   params:
+  #     order: desc
+  #     greedy: multi
 
-  - name: aisle_grasp
-    algo: aisle_grasp
+  # - name: ga_base_uniform_seeded_random
+  #   algo: ga
+  #   params:
+  #     variant: BaseGA
+  #     pop_size: 50
+  #     epoch: 300
+  #     pc: 0.9
+  #     pm: 0.05
+  #     selection: tournament
+  #     crossover: uniform
+  #     mutation: flip
+  #     k_way: 0.2
+  #     aisle_selector: multi
+  #     seed_with_heuristics: true
+  #     start: random
+
+  - name: ga_base_uniform_seeded_aisle
+    algo: ga
     params:
-      alpha: 0.3
-      scoring: adaptive
-      aisle_score: useful
-      packing_order: desc
-      max_iterations: 20
-      greedy: multi
-      local_search_aisle: full
-      local_search_order: full
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      aisle_selector: multi
+      seed_with_heuristics: true
+      start: seed_aisle
+
+  - name: ga_base_uniform_seeded_useful_aisle
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      aisle_selector: multi
+      seed_with_heuristics: true
+      start: useful_seed_aisle

@@ -1,0 +1,113 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Parameter grid for algorithm: ga (Genetic Algorithm via mealpy)
+
+instance_dir: datasets/a
+repetitions: 1
+seed_base: 42
+max_workers: null
+time_limit: 180
+result_dir: results
+save_output: true
+
+algorithms:
+  # --- baseline: BaseGA with uniform crossover, multi-greedy aisle decoder, heuristic seeds ---
+  - name: ga_base_uniform_seeded
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      aisle_selector: multi
+      seed_with_heuristics: true
+
+  # --- Elite variant with single-point crossover; higher pm to offset elitism pressure ---
+  - name: ga_elite_single_seeded
+    algo: ga
+    params:
+      variant: EliteSingleGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.1
+      selection: tournament
+      crossover: one_point
+      mutation: flip
+      k_way: 0.2
+      elite_best: 0.1
+      elite_worst: 0.3
+      aisle_selector: multi
+      seed_with_heuristics: true
+
+  # --- MultiGA (multi-child per generation) with multi-point crossover ---
+  - name: ga_multi_multipoint_seeded
+    algo: ga
+    params:
+      variant: MultiGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: multi_points
+      mutation: flip
+      k_way: 0.2
+      aisle_selector: multi
+      seed_with_heuristics: true
+
+  # --- EliteMultiGA: elitism + multi-child; aggressive mutation for diversity ---
+  - name: ga_elite_multi_seeded
+    algo: ga
+    params:
+      variant: EliteMultiGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.15
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      elite_best: 0.1
+      elite_worst: 0.3
+      aisle_selector: multi
+      seed_with_heuristics: true
+
+  # --- no heuristic seeding: pure random init, larger population/epoch budget ---
+  - name: ga_base_random_init
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 80
+      epoch: 500
+      pc: 0.85
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      aisle_selector: multi
+      seed_with_heuristics: false
+
+  # --- simple aisle decoder (faster, lower-quality) to spend budget on more generations ---
+  - name: ga_elite_single_simpleaisle
+    algo: ga
+    params:
+      variant: EliteSingleGA
+      pop_size: 60
+      epoch: 600
+      pc: 0.9
+      pm: 0.08
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      elite_best: 0.1
+      elite_worst: 0.3
+      aisle_selector: simple
+      seed_with_heuristics: true

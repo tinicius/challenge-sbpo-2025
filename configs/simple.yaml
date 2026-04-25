@@ -4,7 +4,7 @@
 instance_dir: datasets/a
 
 # Number of repetitions per (algorithm, instance) pair
-repetitions: 30
+repetitions: 5
 
 # Base seed for reproducibility (run i uses seed_base + i)
 seed_base: 42
@@ -259,3 +259,133 @@ algorithms:
       order: diff
       first_order: bigger
       similarity_weighted: true
+
+  # Exact aisle selection (Gurobi) using the same order construction variants
+
+  - name: random_exact
+    algo: simple
+    params:
+      greedy: simple
+      exact: true
+
+  - name: smaller_exact
+    algo: simple
+    deterministic: True
+    params:
+      order: asc
+      greedy: simple
+      exact: true
+
+  - name: bigger_exact
+    algo: simple
+    deterministic: True
+    params:
+      order: desc
+      greedy: simple
+      exact: true
+
+  - name: similar_exact
+    algo: simple
+    params:
+      greedy: simple
+      order: similar
+      exact: true
+
+  - name: similar_smaller_exact
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: similar
+      first_order: smaller
+      exact: true
+
+  - name: similar_bigger_exact
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: similar
+      first_order: bigger
+      exact: true
+
+  - name: diff_exact
+    algo: simple
+    params:
+      greedy: simple
+      order: diff
+      exact: true
+
+  - name: diff_smaller_exact
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: diff
+      first_order: smaller
+      exact: true
+
+  - name: diff_bigger_exact
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: diff
+      first_order: bigger
+      exact: true
+
+  - name: similar_exact_weighted
+    algo: simple
+    params:
+      greedy: simple
+      order: similar
+      similarity_weighted: true
+      exact: true
+
+  - name: similar_smaller_exact_weighted
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: similar
+      first_order: smaller
+      similarity_weighted: true
+      exact: true
+
+  - name: similar_bigger_exact_weighted
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: similar
+      first_order: bigger
+      similarity_weighted: true
+      exact: true
+
+  - name: diff_exact_weighted
+    algo: simple
+    params:
+      greedy: simple
+      order: diff
+      similarity_weighted: true
+      exact: true
+
+  - name: diff_smaller_exact_weighted
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: diff
+      first_order: smaller
+      similarity_weighted: true
+      exact: true
+
+  - name: diff_bigger_exact_weighted
+    algo: simple
+    deterministic: True
+    params:
+      greedy: simple
+      order: diff
+      first_order: bigger
+      similarity_weighted: true
+      exact: true

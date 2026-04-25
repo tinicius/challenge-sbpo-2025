@@ -1,0 +1,125 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Pan & Liu (1995) "A Comparative Study of Order Batching Algorithms" adapted.
+#
+# Seed rules    : SD1 (size), SD2 (# distinct items), SD3 (|aisle footprint|), SD4 (theta)
+# Addition rules: OA1 (max shared aisles), OA2 (min new aisles), OA3 (Jaccard), OA4 (theta)
+# Plus the SL (small/large) algorithm as an independent seed rule.
+#
+# Pan & Liu conclude that SD3+OA3 is the overall winner across shape factors,
+# S/R capacities and storage-assignment policies, so it is listed first.
+
+instance_dir: datasets/a
+repetitions: 1
+seed_base: 42
+max_workers: null
+time_limit: 90
+result_dir: results
+save_output: true
+
+algorithms:
+  # --- Paper winner: economic convex hull + similarity coefficient -----------
+  - name: pan_liu_sd3_oa3
+    algo: pan_liu
+    deterministic: true
+    params:
+      seed_rule: SD3
+      add_rule: OA3
+      greedy: simple
+  - name: pan_liu_sd3_oa3_multi
+    algo: pan_liu
+    deterministic: true
+    params:
+      seed_rule: SD3
+      add_rule: OA3
+      greedy: multi
+
+  # --- SL (small / large) algorithm ------------------------------------------
+  - name: pan_liu_sl
+    algo: pan_liu
+    deterministic: true
+    params:
+      seed_rule: SL
+      add_rule: OA1  # unused by SL but required for validation
+      greedy: simple
+      sl_threshold: 0.5
+  - name: pan_liu_sl_multi
+    algo: pan_liu
+    deterministic: true
+    params:
+      seed_rule: SL
+      add_rule: OA1
+      greedy: multi
+      sl_threshold: 0.5
+  - name: pan_liu_sl_strict
+    algo: pan_liu
+    deterministic: true
+    params:
+      seed_rule: SL
+      add_rule: OA1
+      greedy: simple
+      sl_threshold: 0.7
+
+  # --- 16-cell SD x OA grid for comparison ------------------------------------
+  - name: pan_liu_sd1_oa1
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD1, add_rule: OA1, greedy: simple }
+  - name: pan_liu_sd1_oa2
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD1, add_rule: OA2, greedy: simple }
+  - name: pan_liu_sd1_oa3
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD1, add_rule: OA3, greedy: simple }
+  - name: pan_liu_sd1_oa4
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD1, add_rule: OA4, greedy: simple }
+
+  - name: pan_liu_sd2_oa1
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD2, add_rule: OA1, greedy: simple }
+  - name: pan_liu_sd2_oa2
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD2, add_rule: OA2, greedy: simple }
+  - name: pan_liu_sd2_oa3
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD2, add_rule: OA3, greedy: simple }
+  - name: pan_liu_sd2_oa4
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD2, add_rule: OA4, greedy: simple }
+
+  - name: pan_liu_sd3_oa1
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD3, add_rule: OA1, greedy: simple }
+  - name: pan_liu_sd3_oa2
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD3, add_rule: OA2, greedy: simple }
+  - name: pan_liu_sd3_oa4
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD3, add_rule: OA4, greedy: simple }
+
+  - name: pan_liu_sd4_oa1
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD4, add_rule: OA1, greedy: simple }
+  - name: pan_liu_sd4_oa2
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD4, add_rule: OA2, greedy: simple }
+  - name: pan_liu_sd4_oa3
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD4, add_rule: OA3, greedy: simple }
+  - name: pan_liu_sd4_oa4
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD4, add_rule: OA4, greedy: simple }

@@ -3,8 +3,10 @@
 from algorithms.aisle_first.aisle_first_heuristic import AisleFirstHeuristic
 from algorithms.aisle_first.aisle_grasp_cpp_heuristic import AisleGraspCppHeuristic
 from algorithms.aisle_first.aisle_grasp_heuristic import AisleGraspHeuristic
+from algorithms.ga.ga_heuristic import GeneticAlgorithm
 from algorithms.grasp.grasp_heuristic import GraspHeuristic
 from algorithms.grasp.grasp_cpp_heuristic import GraspCppHeuristic
+from algorithms.pan_liu.pan_liu_heuristic import PanLiuHeuristic
 from algorithms.sa.sa_heuristic import SimulatedAnnealing
 from algorithms.seed.seed_ilp_gurobi_heuristic import SeedIlpGurobiHeuristic
 from algorithms.seed.seed_heuristic import SeedHeuristic
@@ -22,6 +24,8 @@ REGISTRY = {
     "grasp": GraspHeuristic,
     "grasp_cpp": GraspCppHeuristic,
     "sa": SimulatedAnnealing,
+    "ga": GeneticAlgorithm,
+    "pan_liu": PanLiuHeuristic,
     # Aisle based heuristics
     "aisle_first": AisleFirstHeuristic,
     "aisle_grasp": AisleGraspHeuristic,
