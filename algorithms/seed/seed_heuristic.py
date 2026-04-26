@@ -57,6 +57,9 @@ class SeedHeuristic(Algorithm):
         n_orders = instance.nOrders
         n_aisles = instance.nAisles
 
+        if self._synergy == "min_new_aisles":
+            return dict(_EMPTY_RESULT)
+
         if n_orders == 0 or n_aisles == 0:
             return dict(_EMPTY_RESULT)
 
@@ -69,6 +72,7 @@ class SeedHeuristic(Algorithm):
 
         seed_order = orders[seed_idx]
         seed_size = order_sizes[seed_idx]
+
         if seed_size > ub:
             return dict(_EMPTY_RESULT)
         if any(stock.get(it, 0) < q for it, q in seed_order.items()):
@@ -78,6 +82,7 @@ class SeedHeuristic(Algorithm):
         demand: dict[int, int] = dict(seed_order)
         total_units = seed_size
         stock_remaining = dict(stock)
+
         for it, q in seed_order.items():
             stock_remaining[it] -= q
 
@@ -87,6 +92,7 @@ class SeedHeuristic(Algorithm):
 
         while remaining:
             candidates: list[int] = []
+
             for idx in remaining:
                 if total_units + order_sizes[idx] > ub:
                     continue
@@ -142,6 +148,7 @@ class SeedHeuristic(Algorithm):
             if self._greedy == "multi"
             else greedy_aisle_select(dict(demand), aisles)
         )
+
         if not visited_aisles:
             return dict(_EMPTY_RESULT)
 
@@ -171,9 +178,11 @@ class SeedHeuristic(Algorithm):
             return rng.choice(non_empty)
 
         item_aisle_count: dict[int, int] = {}
+
         for aisle in aisles:
             for item in aisle:
                 item_aisle_count[item] = item_aisle_count.get(item, 0) + 1
+
         return max(
             non_empty,
             key=lambda i: (

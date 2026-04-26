@@ -9,7 +9,7 @@ from problems.base import ProblemInput
 
 _VALID_ORDER = {None, "asc", "desc", "similar", "diff"}
 _VALID_GREEDY = {"simple", "multi"}
-_VALID_FIRST_ORDER = {None, "smaller", "bigger"}
+_VALID_FIRST_ORDER = {None, "smaller", "bigger", "most_shared"}
 
 _EMPTY_RESULT = {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
@@ -89,7 +89,7 @@ class SimpleHeuristic(Algorithm):
         lb, ub = instance.lb, instance.ub
 
         order_sizes = [sum(o.values()) for o in orders]
-        indices = self._build_traversal(instance.nOrders, order_sizes, orders)
+        indices = self._build_traversal(instance.nOrders, order_sizes, orders, aisles)
 
         stock = self._aggregate_stock(aisles)
         selected_orders, demand, total_units = self._pick_orders(
@@ -126,6 +126,7 @@ class SimpleHeuristic(Algorithm):
         n_orders: int,
         order_sizes: list[int],
         orders: list[dict[int, int]],
+        aisles: list[dict[int, int]],
     ) -> list[int]:
         if self._order is None:
             rng = random.Random(self._seed) if self._seed is not None else random
@@ -133,7 +134,7 @@ class SimpleHeuristic(Algorithm):
             rng.shuffle(indices)
             return indices
         if self._order in {"similar", "diff"}:
-            reference = self._pick_first_order(n_orders, order_sizes, orders)
+            reference = self._pick_first_order(n_orders, order_sizes, orders, aisles)
             return sorted(
                 range(n_orders),
                 key=lambda i: similarity(
@@ -152,15 +153,36 @@ class SimpleHeuristic(Algorithm):
         n_orders: int,
         order_sizes: list[int],
         orders: list[dict[int, int]],
+        aisles: list[dict[int, int]],
     ) -> dict[int, int]:
         if self._first_order == "bigger":
             return orders[max(range(n_orders), key=order_sizes.__getitem__)]
         if self._first_order == "smaller":
             return orders[min(range(n_orders), key=order_sizes.__getitem__)]
+        if self._first_order == "most_shared":
+            return orders[
+                self._get_most_shared_order(n_orders, aisles, order_sizes, orders)
+            ]
+
         rng = random.Random(self._seed) if self._seed is not None else random
         indices = list(range(n_orders))
         rng.shuffle(indices)
         return orders[indices[0]]
+
+    def _get_most_shared_order(self, n_orders, aisles, order_sizes, orders):
+        item_aisle_count: dict[int, int] = {}
+
+        for aisle in aisles:
+            for item in aisle:
+                item_aisle_count[item] = item_aisle_count.get(item, 0) + 1
+
+        return max(
+            range(n_orders),
+            key=lambda i: (
+                sum(item_aisle_count.get(it, 0) for it in orders[i]),
+                order_sizes[i],
+            ),
+        )
 
     @staticmethod
     def _aggregate_stock(aisles: list[dict[int, int]]) -> dict[int, int]:
