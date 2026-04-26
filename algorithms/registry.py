@@ -2,7 +2,6 @@
 
 from algorithms.aisle_first.aisle_first_heuristic import AisleFirstHeuristic
 from algorithms.ga.ga_heuristic import GeneticAlgorithm
-from algorithms.ga.ga_heuristic_full import GeneticAlgorithmFull
 from algorithms.pan_liu.pan_liu_heuristic import PanLiuHeuristic
 from algorithms.seed.seed_heuristic import SeedHeuristic
 from algorithms.simple.simple_cpp_heuristic import SimpleCppHeuristic
@@ -17,7 +16,6 @@ REGISTRY = {
     "seed": SeedHeuristic,
     # Genetic
     "ga": GeneticAlgorithm,
-    "ga_full": GeneticAlgorithmFull,
     "pan_liu": PanLiuHeuristic,
     # Aisle based heuristics
     "aisle_first": AisleFirstHeuristic,

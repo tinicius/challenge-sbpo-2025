@@ -13,7 +13,7 @@ seed_base: 42
 max_workers: null
 
 # Time limit per solver run in seconds (null = no limit)
-time_limit: 300
+time_limit: 180
 
 # Output directory for results
 result_dir: results
@@ -85,8 +85,8 @@ algorithms:
       seed_with_heuristics: true
       start: seed_aisle
 
-  - name: ga_full
-    algo: ga_full
+  - name: ga_ls_on_seeds
+    algo: ga
     params:
       variant: BaseGA
       pop_size: 50
@@ -97,9 +97,99 @@ algorithms:
       crossover: uniform
       mutation: flip
       k_way: 0.2
-      aisle_selector: multi
       seed_with_heuristics: true
-      start: useful_seed_aisle
+      start: seed_aisle
+      local_search:
+        mode: on_seeds
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 200
+        time_fraction: 0.2
+        neighbor_cap: 50
+
+  - name: ga_ls_final
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: final
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 400
+        time_fraction: 0.25
+        neighbor_cap: 80
+
+  - name: ga_ls_both
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: both
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 200
+        time_fraction: 0.3
+        neighbor_cap: 60
+
+  - name: ga_ls_periodic
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: periodic
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 100
+        elite_size: 2
+        period: 50
+        time_fraction: 0.25
+        neighbor_cap: 50
+
+  # - name: ga_full
+  #   algo: ga_full
+  #   params:
+  #     variant: BaseGA
+  #     pop_size: 50
+  #     epoch: 300
+  #     pc: 0.9
+  #     pm: 0.05
+  #     selection: tournament
+  #     crossover: uniform
+  #     mutation: flip
+  #     k_way: 0.2
+  #     aisle_selector: multi
+  #     seed_with_heuristics: true
+  #     start: useful_seed_aisle
 
   # - name: ga_full_25
   #   algo: ga_full

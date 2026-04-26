@@ -52,14 +52,12 @@ An order is *eligible* iff `0 < size ≤ UB` and aggregate stock covers it.
 ### Order addition (with **cumulative seeding**)
 
 Let $F_B$ be the batch's current footprint and $F_i$ the candidate's.
-
-| Rule | Selection                                                                 |
-| ---- | ------------------------------------------------------------------------- |
-| OA1  | $\max |F_i \cap F_B|$ — most shared aisles with the seed                  |
-| OA2  | $\min |F_i \setminus F_B|$ — fewest aisles to *add* to the batch          |
-| OA3  | $\max |F_i \cap F_B| / |F_i \cup F_B|$ — Jaccard similarity (paper's SC)  |
-| OA4  | $\min |\theta_i - \bar{\theta}_B|$ — closest positional value             |
-
+| Rule | Selection |
+|------|-----------|
+| OA1  | $\max \|F_i \cap F_B\|$ — most shared aisles with the seed |
+| OA2  | $\min \|F_i \setminus F_B\|$ — fewest aisles to *add* to the batch |
+| OA3  | $\max \|F_i \cap F_B\| / \|F_i \cup F_B\|$ — Jaccard similarity (paper's SC) |
+| OA4  | $\min \|\theta_i - \bar{\theta}_B\|$ — closest positional value |
 Ties broken by largest order size so the wave fills faster.
 
 ### SL (small / large)

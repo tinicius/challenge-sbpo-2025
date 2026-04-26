@@ -24,7 +24,14 @@ def run_task(
 
     instance = load_instance(instance_path)
     algo_cls = REGISTRY[algo_key]
-    algo = algo_cls(algo_params)
+
+    # Isolate params per run and inject common controls when absent.
+    effective_params = dict(algo_params)
+    effective_params.setdefault("seed", seed)
+    if algo_key == "ga" and time_limit is not None:
+        effective_params.setdefault("time_budget", max(0.1, float(time_limit) * 0.95))
+
+    algo = algo_cls(effective_params)
 
     start = time.perf_counter()
     timed_out = False
@@ -96,7 +103,7 @@ def run_task(
         "selected_orders": selected_orders,
         "visited_aisles": visited_aisles,
         "selected_items": sorted(selected_items),
-        "params": algo_params,
+        "params": effective_params,
     }
 
     append_jsonl(result_path, record)

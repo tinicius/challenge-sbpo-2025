@@ -111,3 +111,143 @@ algorithms:
       elite_worst: 0.3
       aisle_selector: simple
       seed_with_heuristics: true
+
+  # --- Memetic GA: local search applied only to heuristic seeds (cheap polish up-front) ---
+  - name: ga_ls_on_seeds
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: on_seeds
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 200
+        time_fraction: 0.2
+        neighbor_cap: 50
+
+  # --- Memetic GA: local search only on the GA's final incumbent (post-evolution polish) ---
+  - name: ga_ls_final
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: final
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 400
+        time_fraction: 0.25
+        neighbor_cap: 80
+
+  # --- Memetic GA: LS at both ends (seeds + final), splits ls budget 50/50 ---
+  - name: ga_ls_both
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: both
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 200
+        time_fraction: 0.3
+        neighbor_cap: 60
+
+  # --- Memetic GA: periodic LS every `period` generations on top-`elite_size` of pop ---
+  - name: ga_ls_periodic
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: periodic
+        operators: [remove, swap, add]
+        strategy: first_improvement
+        max_iterations: 100
+        elite_size: 2
+        period: 50
+        time_fraction: 0.25
+        neighbor_cap: 50
+
+  # --- Memetic GA: best-improvement LS at final (more thorough per pass, fewer passes) ---
+  - name: ga_ls_final_best_improvement
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: final
+        operators: [remove, swap, add]
+        strategy: best_improvement
+        max_iterations: 600
+        time_fraction: 0.3
+        neighbor_cap: 100
+
+  # --- Memetic GA: only the cheap remove operator (drops useless aisles, denominator-only LS) ---
+  - name: ga_ls_remove_only
+    algo: ga
+    params:
+      variant: BaseGA
+      pop_size: 50
+      epoch: 300
+      pc: 0.9
+      pm: 0.05
+      selection: tournament
+      crossover: uniform
+      mutation: flip
+      k_way: 0.2
+      seed_with_heuristics: true
+      start: seed_aisle
+      local_search:
+        mode: both
+        operators: [remove]
+        strategy: first_improvement
+        max_iterations: 100
+        time_fraction: 0.15
+        neighbor_cap: 40
