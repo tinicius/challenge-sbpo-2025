@@ -1,5 +1,5 @@
 import numpy as np
-from mealpy import BinaryVar, Termination
+from mealpy import IntegerVar, Termination
 from mealpy.evolutionary_based import GA
 
 from algorithms.base import Algorithm
@@ -102,7 +102,7 @@ class GeneticAlgorithm(Algorithm):
 
         problem_def = {
             "obj_func": fitness,
-            "bounds": BinaryVar(n_vars=n_aisles),
+            "bounds": [IntegerVar(lb=0, ub=n_aisles - 1) for _ in range(n_aisles)],
             "minmax": "max",
             "log_to": None,
         }
@@ -139,6 +139,8 @@ class GeneticAlgorithm(Algorithm):
         if self._time_budget is not None:
             solve_kwargs["termination"] = Termination(max_time=self._time_budget)
 
+        # model.solve(problem_def, **solve_kwargs)
+
         try:
             model.solve(problem_def, **solve_kwargs)
         except Exception as exc:
@@ -159,7 +161,7 @@ class GeneticAlgorithm(Algorithm):
 
         def fitness(x):
             # 1. Decode chromosome.
-            proposed_aisles = [i for i in range(n_aisles) if x[i] > 0.5]
+            proposed_aisles = list(set([int(xi) for xi in x]))
             if not proposed_aisles:
                 return 0.0
 
@@ -263,9 +265,7 @@ class GeneticAlgorithm(Algorithm):
 
         return unique or None
 
-    def _mixed_seeds(
-        self, instance: ProblemInput, n_aisles: int
-    ) -> list[np.ndarray]:
+    def _mixed_seeds(self, instance: ProblemInput, n_aisles: int) -> list[np.ndarray]:
         """Default seeding: one greedy demand-aware seed + similarity seeds + random."""
         seeds: list[np.ndarray] = []
 
@@ -278,9 +278,7 @@ class GeneticAlgorithm(Algorithm):
 
         if len(seeds) < self._pop_size:
             seeds.extend(
-                self.get_random_seeds(
-                    instance, n_aisles, self._pop_size - len(seeds)
-                )
+                self.get_random_seeds(instance, n_aisles, self._pop_size - len(seeds))
             )
 
         return seeds
@@ -316,10 +314,7 @@ class GeneticAlgorithm(Algorithm):
                 ordered_orders, instance, stock, instance.ub
             )
             if total_volume >= instance.lb:
-                mask = np.zeros(n_aisles, dtype=int)
-                for a in selected_aisles:
-                    mask[a] = 1
-                return mask
+                return np.array(selected_aisles)
 
         return None
 
@@ -331,6 +326,7 @@ class GeneticAlgorithm(Algorithm):
         ordered_orders = _orders_by_size_desc(instance)
 
         anchor_count = min(self._pop_size, n_aisles)
+
         for anchor in range(anchor_count):
             ordered_aisles = sorted(
                 range(n_aisles),
@@ -352,14 +348,12 @@ class GeneticAlgorithm(Algorithm):
                 _, total_volume = _greedy_fill_orders(
                     ordered_orders, instance, stock, instance.ub
                 )
+
                 if total_volume >= instance.lb:
                     break
 
             if total_volume >= instance.lb:
-                mask = np.zeros(n_aisles, dtype=int)
-                for a in selected_aisles:
-                    mask[a] = 1
-                out.append(mask)
+                out.append(np.array(selected_aisles))
 
         return out
 
@@ -369,6 +363,7 @@ class GeneticAlgorithm(Algorithm):
         """Stochastic seeds via SimpleHeuristic with varying RNG seeds."""
         out: list[np.ndarray] = []
         base_seed = self._seed or 0
+
         for i in range(n_seeds):
             try:
                 result = SimpleHeuristic(
@@ -379,12 +374,10 @@ class GeneticAlgorithm(Algorithm):
             visited = result.get("visited_aisles") or []
             if not visited:
                 continue
-            mask = np.zeros(n_aisles, dtype=int)
-            for a in visited:
-                if 0 <= a < n_aisles:
-                    mask[a] = 1
-            if mask.sum() > 0:
-                out.append(mask)
+
+            if len(visited) > 0:
+                out.append(np.array(visited))
+
         return out
 
 
@@ -438,9 +431,7 @@ def _greedy_cover(
         best_pos = -1
         best_score = 0
         for pos, a_idx in enumerate(available):
-            score = sum(
-                min(remaining.get(it, 0), q) for it, q in aisles[a_idx].items()
-            )
+            score = sum(min(remaining.get(it, 0), q) for it, q in aisles[a_idx].items())
             if score > best_score:
                 best_score = score
                 best_pos = pos

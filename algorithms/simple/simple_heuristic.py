@@ -2,6 +2,7 @@ import random
 
 from algorithms.base import Algorithm
 from algorithms.utils.greedy_aisle_select import greedy_aisle_select
+from algorithms.utils.ilp_aisle_select import solve_min_aisle_cover
 from algorithms.utils.multi_greedy_aisle_select import multi_greedy_aisle_select
 from algorithms.utils.similarity import similarity
 from problems.base import ProblemInput
@@ -50,26 +51,26 @@ class SimpleHeuristic(Algorithm):
                 f"SimpleHeuristic: invalid 'exact'={exact!r}; expected bool"
             )
 
-        gurobi_time_limit = params.get("gurobi_time_limit", 30.0)
-        gurobi_threads = params.get("gurobi_threads", 0)
+        exact_time_limit = params.get("exact_time_limit", 30.0)
+        exact_num_workers = params.get("exact_num_workers", 0)
 
         try:
-            self._gurobi_time_limit = float(gurobi_time_limit)
+            self._exact_time_limit = float(exact_time_limit)
         except (TypeError, ValueError) as exc:
             raise ValueError(
-                "SimpleHeuristic: 'gurobi_time_limit' must be a number"
+                "SimpleHeuristic: 'exact_time_limit' must be a number"
             ) from exc
-        if self._gurobi_time_limit <= 0:
-            raise ValueError("SimpleHeuristic: 'gurobi_time_limit' must be > 0")
+        if self._exact_time_limit <= 0:
+            raise ValueError("SimpleHeuristic: 'exact_time_limit' must be > 0")
 
         try:
-            self._gurobi_threads = int(gurobi_threads)
+            self._exact_num_workers = int(exact_num_workers)
         except (TypeError, ValueError) as exc:
             raise ValueError(
-                "SimpleHeuristic: 'gurobi_threads' must be an integer"
+                "SimpleHeuristic: 'exact_num_workers' must be an integer"
             ) from exc
-        if self._gurobi_threads < 0:
-            raise ValueError("SimpleHeuristic: 'gurobi_threads' must be >= 0")
+        if self._exact_num_workers < 0:
+            raise ValueError("SimpleHeuristic: 'exact_num_workers' must be >= 0")
 
         self._order = order
         self._greedy = greedy
@@ -99,7 +100,12 @@ class SimpleHeuristic(Algorithm):
             return dict(_EMPTY_RESULT)
 
         if self._exact:
-            visited_aisles = self._solve_min_aisles_for_demand(demand, aisles)
+            visited_aisles = solve_min_aisle_cover(
+                demand,
+                aisles,
+                time_limit_seconds=self._exact_time_limit,
+                num_workers=self._exact_num_workers,
+            ).selected_aisles
         else:
             visited_aisles = (
                 multi_greedy_aisle_select(demand, aisles)
@@ -114,51 +120,6 @@ class SimpleHeuristic(Algorithm):
             "visited_aisles": visited_aisles,
             "objective": total_units / len(visited_aisles),
         }
-
-    def _solve_min_aisles_for_demand(
-        self,
-        demand: dict[int, int],
-        aisles: list[dict[int, int]],
-    ) -> list[int]:
-        try:
-            import gurobipy as gp
-            from gurobipy import GRB
-        except ImportError as exc:
-            raise RuntimeError(
-                "SimpleHeuristic with exact=True requires gurobipy to be installed and licensed."
-            ) from exc
-
-        active_demand = {item: qty for item, qty in demand.items() if qty > 0}
-        if not active_demand:
-            return []
-
-        model = gp.Model("simple_min_aisles")
-        model.Params.OutputFlag = 0
-        model.Params.TimeLimit = self._gurobi_time_limit
-        if self._gurobi_threads > 0:
-            model.Params.Threads = self._gurobi_threads
-
-        n_aisles = len(aisles)
-        x = model.addVars(n_aisles, vtype=GRB.BINARY, name="x")
-
-        model.setObjective(gp.quicksum(x[a] for a in range(n_aisles)), GRB.MINIMIZE)
-
-        for item, qty in active_demand.items():
-            model.addConstr(
-                gp.quicksum(aisles[a].get(item, 0) * x[a] for a in range(n_aisles))
-                >= qty,
-                name=f"cover_item_{item}",
-            )
-
-        model.optimize()
-
-        if (
-            model.Status in {GRB.OPTIMAL, GRB.TIME_LIMIT, GRB.SUBOPTIMAL}
-            and model.SolCount > 0
-        ):
-            return [a for a in range(n_aisles) if x[a].X >= 0.5]
-
-        return []
 
     def _build_traversal(
         self,

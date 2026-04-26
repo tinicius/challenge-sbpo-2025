@@ -46,22 +46,22 @@ if __name__ == "__main__":
     instance_path = "datasets/a/instance_0001.txt"
     instance = load_instance(instance_path)
 
-    ga_full = GeneticAlgorithmFull(
-        {
-            "variant": "BaseGA",
-            "pop_size": 50,
-            "epoch": 300,
-            "pc": 0.9,
-            "pm": 0.05,
-            "selection": "tournament",
-            "crossover": "uniform",
-            "mutation": "flip",
-            "k_way": 0.2,
-            "aisle_selector": "multi",
-            "seed_with_heuristics": True,
-            "start": "useful_seed_aisle",
-        }
-    )
+    # ga_full = GeneticAlgorithmFull(
+    #     {
+    #         "variant": "BaseGA",
+    #         "pop_size": 50,
+    #         "epoch": 300,
+    #         "pc": 0.9,
+    #         "pm": 0.05,
+    #         "selection": "tournament",
+    #         "crossover": "uniform",
+    #         "mutation": "flip",
+    #         "k_way": 0.2,
+    #         "aisle_selector": "multi",
+    #         "seed_with_heuristics": True,
+    #         "start": "useful_seed_aisle",
+    #     }
+    # )
 
     ga_aisle = GeneticAlgorithm(
         {
@@ -76,7 +76,7 @@ if __name__ == "__main__":
             "k_way": 0.2,
             "aisle_selector": "multi",
             "seed_with_heuristics": True,
-            "start": "aisle",
+            "start": "random",
         }
     )
 
@@ -86,9 +86,9 @@ if __name__ == "__main__":
 
     TIMEOUT_SECONDS = 90
 
-    print("Executando 1...")
-    result = run_with_timeout(ga_full, instance, TIMEOUT_SECONDS)
-    print("Result GA Full:", result["objective"] if result else "Timeout!")
+    # print("Executando 1...")
+    # result = run_with_timeout(ga_full, instance, TIMEOUT_SECONDS)
+    # print("Result GA Full:", result["objective"] if result else "Timeout!")
 
     print("Executando 2...")
     result2 = run_with_timeout(ga_aisle, instance, TIMEOUT_SECONDS)

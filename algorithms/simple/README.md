@@ -17,7 +17,7 @@
 O objetivo do problema é maximizar `total de unidades coletadas / número de corredores visitados`. Essa heurística separa o problema em duas etapas independentes e gulosas:
 
 - **Seleção de ordens**: tenta encher a onda sob `lb ≤ total_units ≤ ub` seguindo uma sequência (aleatória, por tamanho ou por similaridade).
-- **Seleção de corredores**: dada a demanda resultante, delega a cobertura a um dos utilitários gulosos (`greedy_aisle_select` ou `multi_greedy_aisle_select`) ou resolve exatamente com Gurobi (`exact: true`).
+- **Seleção de corredores**: dada a demanda resultante, delega a cobertura a um dos utilitários gulosos (`greedy_aisle_select` ou `multi_greedy_aisle_select`) ou resolve exatamente com OR-Tools CP-SAT (`exact: true`).
 
 Por ser desacoplada, a heurística é rápida e serve como **baseline** e como **provedor de seed** para algoritmos mais elaborados.
 
@@ -56,7 +56,7 @@ se total_units < lb:
     retornar solução vazia (objetivo = 0)
 
 se params.exact == true:
-    visited_aisles ← ILP exato (Gurobi) minimizando número de corredores
+    visited_aisles ← ILP exato (OR-Tools CP-SAT) minimizando número de corredores
 senão se params.greedy == "multi":
     visited_aisles ← multi_greedy_aisle_select(demand, aisles)
 senão:
@@ -74,9 +74,9 @@ Validados em `__init__`; `ValueError` é levantado na construção, não durante
 | Parâmetro | Valores aceitos | Obrigatório | Efeito |
 |---|---|---|---|
 | `greedy` | `"simple"` / `"multi"` | sim | `"simple"` usa `greedy_aisle_select`; `"multi"` usa `multi_greedy_aisle_select`. |
-| `exact` | `bool` (default `False`) | não | Quando `true`, ignora o seletor guloso e resolve a seleção de corredores via ILP com Gurobi, minimizando o número de corredores visitados para cobrir `demand`. |
-| `gurobi_time_limit` | número `> 0` (default `30.0`) | não | Limite de tempo em segundos para o solve exato com Gurobi (`exact: true`). |
-| `gurobi_threads` | inteiro `>= 0` (default `0`) | não | Número de threads do Gurobi em `exact: true` (`0` = automático). |
+| `exact` | `bool` (default `False`) | não | Quando `true`, ignora o seletor guloso e resolve a seleção de corredores via ILP com OR-Tools CP-SAT, minimizando o número de corredores visitados para cobrir `demand`. |
+| `exact_time_limit` | número `> 0` (default `30.0`) | não | Limite de tempo em segundos para o solve exato (`exact: true`). |
+| `exact_num_workers` | inteiro `>= 0` (default `0`) | não | Número de workers paralelos do CP-SAT em `exact: true` (`0` = automático). |
 | `order` | `"asc"` / `"desc"` / `"similar"` / `"diff"` / ausente | não | Critério de ordenação das ordens. Ausente = ordem aleatória. |
 | `seed` | `int` / ausente | não | Semente para o shuffle. Aplica-se quando `order` é ausente, ou na escolha aleatória de `first_order` quando `first_order` é ausente. |
 | `first_order` | `"smaller"` / `"bigger"` / ausente | não | Apenas para `order ∈ {similar, diff}`. Define a ordem de referência usada no cálculo de similaridade. Ausente = primeira ordem de um shuffle. |

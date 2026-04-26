@@ -48,6 +48,7 @@ def solve_min_aisle_cover(
     demand: dict[int, int],
     aisles: list[dict[int, int]],
     time_limit_seconds: float = 30.0,
+    num_workers: int = 0,
 ) -> ILPResult:
     """Exact ILP: select the fewest aisles that collectively cover all demand.
 
@@ -91,6 +92,8 @@ def solve_min_aisle_cover(
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = time_limit_seconds
+    if num_workers > 0:
+        solver.parameters.num_search_workers = num_workers
 
     t0 = time.perf_counter()
     status_code = solver.solve(model)
