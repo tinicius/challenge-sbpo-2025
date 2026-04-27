@@ -4,6 +4,7 @@ from algorithms.ga.ga_heuristic import GeneticAlgorithm
 from algorithms.aisle_first.aisle_first_heuristic import AisleFirstHeuristic
 from algorithms.simple.simple_heuristic import SimpleHeuristic
 from algorithms.pan_liu.pan_liu_heuristic import PanLiuHeuristic
+from algorithms.dinkelbach_alns.algorithm import DinkelbachALNS
 
 from problems.base import ProblemInput, load_instance
 from problems.validation import is_solution_feasible, compute_objective
@@ -71,56 +72,66 @@ if __name__ == "__main__":
     TIMEOUT_SECONDS = 180  # 3 minutes per solver
 
     solvers = [
-        {
-            "name": "bigger",
-            "solver": SimpleHeuristic(
-                {
-                    "order": "desc",
-                    "greedy": "multi",
-                    "first_order": "bigger",
-                    "exact": True,
-                }
-            ),
-        },
-        {
-            "name": "pan_liu",
-            "solver": PanLiuHeuristic(
-                {
-                    "greedy": "multi",
-                }
-            ),
-        },
+        # {
+        #     "name": "bigger",
+        #     "solver": SimpleHeuristic(
+        #         {
+        #             "order": "desc",
+        #             "greedy": "multi",
+        #             "first_order": "bigger",
+        #             "exact": True,
+        #         }
+        #     ),
+        # },
+        # {
+        #     "name": "pan_liu",
+        #     "solver": PanLiuHeuristic(
+        #         {
+        #             "greedy": "multi",
+        #         }
+        #     ),
+        # },
         {
             "name": "aisle_first",
             "solver": AisleFirstHeuristic(
                 {"score": "useful", "order": "desc", "prune": "multi"}
             ),
         },
+        # {
+        #     "name": "ga_full",
+        #     "solver": GeneticAlgorithm(
+        #         {
+        #             "variant": "BaseGA",
+        #             "pop_size": 50,
+        #             "epoch": 300,
+        #             "pc": 0.9,
+        #             "pm": 0.05,
+        #             "selection": "tournament",
+        #             "crossover": "uniform",
+        #             "mutation": "flip",
+        #             "k_way": 0.2,
+        #             "seed_with_heuristics": True,
+        #             "start": "seed_aisle",
+        #             "local_search": {
+        #                 "mode": "final",
+        #                 "operators": ["remove", "swap", "add"],
+        #                 "strategy": "first_improvement",
+        #                 "max_iterations": 400,
+        #                 "time_fraction": 0.25,
+        #                 "neighbor_cap": 80,
+        #             },
+        #             "time_budget": TIMEOUT_SECONDS
+        #             * 0.95,  # Reserve 95% of timeout for GA evolution
+        #         }
+        #     ),
+        # },
         {
-            "name": "ga_full",
-            "solver": GeneticAlgorithm(
+            "name": "dinkelbach_alns",
+            "solver": DinkelbachALNS(
                 {
-                    "variant": "BaseGA",
-                    "pop_size": 50,
-                    "epoch": 300,
-                    "pc": 0.9,
-                    "pm": 0.05,
-                    "selection": "tournament",
-                    "crossover": "uniform",
-                    "mutation": "flip",
-                    "k_way": 0.2,
-                    "seed_with_heuristics": True,
-                    "start": "seed_aisle",
-                    "local_search": {
-                        "mode": "final",
-                        "operators": ["remove", "swap", "add"],
-                        "strategy": "first_improvement",
-                        "max_iterations": 400,
-                        "time_fraction": 0.25,
-                        "neighbor_cap": 80,
-                    },
-                    "time_budget": TIMEOUT_SECONDS
-                    * 0.95,  # Reserve 95% of timeout for GA evolution
+                    "time_limit": TIMEOUT_SECONDS
+                    * 0.95,  # Reserve 95% of timeout for ALNS search
+                    "seed": 42,
                 }
             ),
         },

@@ -140,26 +140,31 @@ class GeneticAlgorithm(Algorithm):
         fitness = self._make_fitness(
             instance, n_aisles, aisle_matrix, ordered_sizes_fast, ordered_matrix_fast
         )
+        fitness_cache = fitness.cache
 
-        # LS helper: derive selected_orders from a mask using the same greedy
-        # logic as fitness, so served/unmet demand drive operator priorities.
+        # LS helper: derive selected_orders from a mask. Reuses the cache
+        # populated by `fitness` (a mask reaching LS was just evaluated by GA
+        # or fitness_fn), avoiding a duplicate pack-orders pass.
         def _orders_for_mask(mask: np.ndarray) -> list[int]:
             active = np.flatnonzero(mask > 0.5)
             if active.size == 0:
                 return []
-            stock = np.sum(aisle_matrix[active], axis=0)
-            sel: list[int] = []
-            vol = 0
-            for o_idx, size, req in zip(
-                self.order_priorities, ordered_sizes_fast, ordered_matrix_fast
-            ):
-                if vol + size > instance.ub:
-                    continue
-                if np.all(req <= stock):
-                    sel.append(o_idx)
-                    vol += size
-                    stock = stock - req
-            return sel
+            t = tuple(active)
+            cached = fitness_cache.get(t)
+            if cached is not None:
+                return cached[1]
+            # Cold-cache fallback: trigger fitness to populate the entry.
+            fitness(mask)
+            cached = fitness_cache.get(t)
+            return cached[1] if cached else []
+
+        # Precompute once per solve() — used by LS to skip O(n_orders) work
+        # in unmet-demand subtraction and O(items) work per similarity call.
+        total_demand: dict[int, int] = {}
+        for order in instance.orders:
+            for item, qty in order.items():
+                total_demand[item] = total_demand.get(item, 0) + qty
+        aisle_key_sets = [frozenset(a.keys()) for a in instance.aisles]
 
         # Time budget split: reserve `ls_total` for LS, give the rest to mealpy.
         ls_total, ga_budget = self._compute_time_split(solve_start)
@@ -187,7 +192,13 @@ class GeneticAlgorithm(Algorithm):
             and self._ls_max_iter > 0
         ):
             self._polish_seeds(
-                starting, fitness, instance, _orders_for_mask, on_seeds_budget
+                starting,
+                fitness,
+                instance,
+                _orders_for_mask,
+                on_seeds_budget,
+                total_demand,
+                aisle_key_sets,
             )
 
         # Run GA: single shot or chunked (periodic LS).
@@ -202,6 +213,8 @@ class GeneticAlgorithm(Algorithm):
                     ls_total,
                     ga_budget,
                     solve_start,
+                    total_demand,
+                    aisle_key_sets,
                 )
             else:
                 self._run_single(starting, fitness, n_aisles, ga_budget)
@@ -211,7 +224,13 @@ class GeneticAlgorithm(Algorithm):
         # Final polish on the incumbent.
         if self._ls_mode in {"final", "both"} and self._ls_max_iter > 0:
             self._polish_final(
-                fitness, instance, n_aisles, _orders_for_mask, final_budget
+                fitness,
+                instance,
+                n_aisles,
+                _orders_for_mask,
+                final_budget,
+                total_demand,
+                aisle_key_sets,
             )
 
         if self.last_best["selected_orders"]:
@@ -290,6 +309,8 @@ class GeneticAlgorithm(Algorithm):
         ls_total: float,
         ga_budget: float | None,
         solve_start: float,
+        total_demand: dict[int, int],
+        aisle_key_sets: list[frozenset],
     ) -> None:
         chunk = self._ls_period
         total_epochs = self._epoch
@@ -343,6 +364,8 @@ class GeneticAlgorithm(Algorithm):
                         neighbor_cap=self._ls_neighbor_cap,
                         deadline=deadline,
                         selected_orders_fn=orders_for_mask,
+                        total_demand=total_demand,
+                        aisle_key_sets=aisle_key_sets,
                     )
                     polished.append(new_mask)
                 else:
@@ -376,6 +399,8 @@ class GeneticAlgorithm(Algorithm):
         instance: ProblemInput,
         orders_for_mask,
         budget: float,
+        total_demand: dict[int, int],
+        aisle_key_sets: list[frozenset],
     ) -> None:
         if not seeds or self._ls_max_iter <= 0:
             return
@@ -396,6 +421,8 @@ class GeneticAlgorithm(Algorithm):
                 neighbor_cap=self._ls_neighbor_cap,
                 deadline=deadline,
                 selected_orders_fn=orders_for_mask,
+                total_demand=total_demand,
+                aisle_key_sets=aisle_key_sets,
             )
             seeds[i] = new_mask
 
@@ -406,6 +433,8 @@ class GeneticAlgorithm(Algorithm):
         n_aisles: int,
         orders_for_mask,
         budget: float,
+        total_demand: dict[int, int],
+        aisle_key_sets: list[frozenset],
     ) -> None:
         visited = self.last_best.get("visited_aisles") or []
         if not visited:
@@ -424,6 +453,8 @@ class GeneticAlgorithm(Algorithm):
             neighbor_cap=self._ls_neighbor_cap,
             deadline=deadline,
             selected_orders_fn=orders_for_mask,
+            total_demand=total_demand,
+            aisle_key_sets=aisle_key_sets,
         )
 
     # ---------- Fitness ----------------------------------------------------
@@ -446,8 +477,9 @@ class GeneticAlgorithm(Algorithm):
 
             # Tiny tuple hashes instantly compared to full binary array
             t_x = tuple(active_indices)
-            if t_x in cache:
-                return cache[t_x]
+            cached = cache.get(t_x)
+            if cached is not None:
+                return cached[0]
 
             # Fast matrix sum (skips multiplying zeros entirely)
             current_stock = np.sum(aisle_matrix[active_indices], axis=0)
@@ -474,7 +506,7 @@ class GeneticAlgorithm(Algorithm):
             if total_volume < lb:
                 penalty = (total_volume / lb) ** 2
                 obj = (total_volume / n_used) * penalty * _LB_PENALTY_WEIGHT
-                cache[t_x] = obj
+                cache[t_x] = (obj, selected_orders, [])
                 return obj
 
             # Only prune IF solution meets LB (Pruning is expensive)
@@ -498,9 +530,12 @@ class GeneticAlgorithm(Algorithm):
                     "objective": obj,
                 }
 
-            cache[t_x] = obj
+            cache[t_x] = (obj, selected_orders, used_aisles)
             return obj
 
+        # Expose the cache so callers (e.g. LS) can reuse the order packing
+        # already computed by `fitness` instead of recomputing it.
+        fitness.cache = cache
         return fitness
 
     # ---------- Starting population ---------------------------------------

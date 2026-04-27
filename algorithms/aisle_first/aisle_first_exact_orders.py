@@ -1,0 +1,158 @@
+import time
+
+from algorithms.base import Algorithm
+from algorithms.utils.aisle_rank import (
+    VALID_AISLE_SCORE,
+    VALID_ORDER_MODE,
+    aggregate_demand,
+    aggregate_demand_from,
+    build_order_sequence,
+    pack_orders,
+    rank_aisles,
+)
+from algorithms.utils.greedy_aisle_select import greedy_aisle_select
+from algorithms.utils.ilp_order_select import solve_max_order_select
+from algorithms.utils.multi_greedy_aisle_select import multi_greedy_aisle_select
+from problems.base import ProblemInput
+
+_VALID_PRUNE = {None, "simple", "multi"}
+
+_EMPTY_RESULT = {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
+
+
+class AisleFirstExactOrders(Algorithm):
+    def __init__(self, params: dict):
+        super().__init__(params)
+        score = params.get("score", "useful")
+        if score not in VALID_AISLE_SCORE:
+            raise ValueError(
+                f"AisleFirstExactOrders: invalid 'score'={score!r}; "
+                f"expected one of {sorted(VALID_AISLE_SCORE)}"
+            )
+        order = params.get("order", "desc")
+        if order not in VALID_ORDER_MODE:
+            raise ValueError(
+                f"AisleFirstExactOrders: invalid 'order'={order!r}; "
+                f"expected one of {sorted(v for v in VALID_ORDER_MODE if v)} or unset"
+            )
+        prune = params.get("prune")
+        if prune not in _VALID_PRUNE:
+            raise ValueError(
+                f"AisleFirstExactOrders: invalid 'prune'={prune!r}; "
+                f"expected one of {sorted(v for v in _VALID_PRUNE if v)} or unset"
+            )
+        time_limit_per_k = float(params.get("time_limit_per_k", 2.0))
+        if time_limit_per_k <= 0:
+            raise ValueError(
+                f"AisleFirstExactOrders: 'time_limit_per_k' must be > 0; got {time_limit_per_k!r}"
+            )
+        total_time_limit = params.get("total_time_limit")
+        if total_time_limit is not None:
+            total_time_limit = float(total_time_limit)
+            if total_time_limit <= 0:
+                raise ValueError(
+                    f"AisleFirstExactOrders: 'total_time_limit' must be > 0 or unset; "
+                    f"got {total_time_limit!r}"
+                )
+        self._score = score
+        self._order = order
+        self._prune = prune
+        self._seed = params.get("seed")
+        self._time_limit_per_k = time_limit_per_k
+        self._total_time_limit = total_time_limit
+        self._fallback_greedy = bool(params.get("fallback_greedy", True))
+
+    @property
+    def name(self) -> str:
+        return "aisle_first_exact"
+
+    def solve(self, instance: ProblemInput) -> dict:
+        orders = instance.orders
+        aisles = instance.aisles
+        lb, ub = instance.lb, instance.ub
+        n_orders = instance.nOrders
+        n_aisles = instance.nAisles
+
+        if n_aisles == 0 or n_orders == 0:
+            return dict(_EMPTY_RESULT)
+
+        order_sizes = [sum(o.values()) for o in orders]
+        total_demand = aggregate_demand(orders)
+
+        ranked_aisles = rank_aisles(aisles, self._score, total_demand)
+        order_sequence = build_order_sequence(
+            n_orders, order_sizes, self._order, seed=self._seed
+        )
+
+        deadline = (
+            time.monotonic() + self._total_time_limit
+            if self._total_time_limit is not None
+            else None
+        )
+
+        best_orders: list[int] = []
+        best_aisles: list[int] = []
+        best_units = 0
+        best_obj = 0.0
+
+        inventory: dict[int, int] = {}
+        for k, aisle_idx in enumerate(ranked_aisles, start=1):
+            for item, qty in aisles[aisle_idx].items():
+                inventory[item] = inventory.get(item, 0) + qty
+
+            if ub / k <= best_obj:
+                break
+
+            if deadline is not None:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                per_k = min(self._time_limit_per_k, remaining)
+            else:
+                per_k = self._time_limit_per_k
+
+            selected_orders = solve_max_order_select(
+                inventory, orders, lb, ub, time_limit_seconds=per_k
+            )
+            total_units = sum(order_sizes[o] for o in selected_orders)
+
+            if not selected_orders or total_units < lb:
+                if self._fallback_greedy:
+                    selected_orders, total_units = pack_orders(
+                        order_sequence, orders, order_sizes, inventory, ub
+                    )
+                    if total_units < lb:
+                        continue
+                else:
+                    continue
+
+            obj = total_units / k
+            if obj > best_obj:
+                best_obj = obj
+                best_units = total_units
+                best_orders = selected_orders
+                best_aisles = ranked_aisles[:k]
+
+        if not best_orders:
+            return dict(_EMPTY_RESULT)
+
+        if self._prune is not None:
+            demand = aggregate_demand_from(orders, best_orders)
+            visited = (
+                multi_greedy_aisle_select(demand, aisles)
+                if self._prune == "multi"
+                else greedy_aisle_select(demand, aisles)
+            )
+            if not visited:
+                return dict(_EMPTY_RESULT)
+            return {
+                "selected_orders": best_orders,
+                "visited_aisles": visited,
+                "objective": best_units / len(visited),
+            }
+
+        return {
+            "selected_orders": best_orders,
+            "visited_aisles": best_aisles,
+            "objective": best_obj,
+        }

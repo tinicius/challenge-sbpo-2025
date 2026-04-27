@@ -79,16 +79,28 @@ def add_neighbors(
     return out
 
 
+def _set_jaccard(s1: frozenset, s2: frozenset) -> float:
+    if not s1 and not s2:
+        return 0.0
+    inter = len(s1 & s2)
+    union = len(s1) + len(s2) - inter
+    return inter / union if union else 0.0
+
+
 def swap_neighbors(
     mask: np.ndarray,
     aisles: list[dict[int, int]],
     served_demand: dict[int, int],
     cap: int,
+    aisle_key_sets: list[frozenset] | None = None,
 ) -> Iterable[np.ndarray]:
     """Generate masks with one active aisle replaced by an inactive one.
 
     Pairs are formed by: (active aisle with lowest utility) × (inactive aisles
     most similar to it). Capped to `cap` total candidates.
+
+    `aisle_key_sets`, when provided, supplies precomputed `frozenset` views of
+    each aisle's item keys, avoiding rebuilding them inside `similarity`.
     """
     active = np.flatnonzero(mask).tolist()
     inactive = np.flatnonzero(mask == 0).tolist()
@@ -101,15 +113,16 @@ def swap_neighbors(
     inactive_sorted = sorted(inactive, key=lambda i: _aisle_units(aisles[i]), reverse=True)
     inactive_pool = inactive_sorted[: max(cap, 20)]
 
+    if aisle_key_sets is not None:
+        sim = lambda a, b: _set_jaccard(aisle_key_sets[a], aisle_key_sets[b])
+    else:
+        sim = lambda a, b: similarity(aisles[a], aisles[b])
+
     out = []
     for a in active_sorted:
         if len(out) >= cap:
             break
-        ranked_b = sorted(
-            inactive_pool,
-            key=lambda b: similarity(aisles[a], aisles[b]),
-            reverse=True,
-        )
+        ranked_b = sorted(inactive_pool, key=lambda b: sim(a, b), reverse=True)
         for b in ranked_b:
             if len(out) >= cap:
                 break
@@ -124,13 +137,24 @@ def _compute_demand_state(
     selected_orders: list[int],
     all_orders: list[dict[int, int]],
     n_orders: int,
+    total_demand: dict[int, int] | None = None,
 ) -> tuple[dict[int, int], dict[int, int]]:
     served: dict[int, int] = {}
     for o_idx in selected_orders:
         for item, qty in all_orders[o_idx].items():
             served[item] = served.get(item, 0) + qty
 
-    unmet: dict[int, int] = {}
+    if total_demand is not None:
+        # Fast path: unmet = total_demand - served. Iterates only items that
+        # appear at all (typically << n_orders × items_per_order).
+        unmet: dict[int, int] = {}
+        for item, total in total_demand.items():
+            remaining = total - served.get(item, 0)
+            if remaining > 0:
+                unmet[item] = remaining
+        return served, unmet
+
+    unmet = {}
     selected_set = set(selected_orders)
     for o_idx in range(n_orders):
         if o_idx in selected_set:
@@ -151,11 +175,16 @@ def local_search_pass(
     neighbor_cap: int,
     deadline: float | None,
     selected_orders_fn: Callable[[np.ndarray], list[int]] | None = None,
+    total_demand: dict[int, int] | None = None,
+    aisle_key_sets: list[frozenset] | None = None,
 ) -> tuple[np.ndarray, float, int]:
     """Run a hill-climb over the aisle mask until no improvement, time, or moves cap.
 
     Returns `(best_mask, best_obj, moves_evaluated)`. `fitness_fn` must already
     incorporate LB penalty / pruning so we can compare raw objectives.
+
+    `total_demand` and `aisle_key_sets`, when provided, accelerate inner loops
+    (unmet-demand subtraction and swap-neighbor similarity, respectively).
     """
     if strategy not in VALID_STRATEGIES:
         raise ValueError(f"local_search: invalid strategy={strategy!r}")
@@ -175,6 +204,7 @@ def local_search_pass(
             selected_orders_fn(best_mask) if selected_orders_fn else [],
             orders,
             len(orders),
+            total_demand=total_demand,
         )
 
         improved = False
@@ -187,7 +217,9 @@ def local_search_pass(
             elif op_name == "add":
                 neighbors = add_neighbors(best_mask, aisles, unmet, neighbor_cap)
             else:
-                neighbors = swap_neighbors(best_mask, aisles, served, neighbor_cap)
+                neighbors = swap_neighbors(
+                    best_mask, aisles, served, neighbor_cap, aisle_key_sets
+                )
 
             for cand in neighbors:
                 if not time_ok() or moves >= max_iterations:
