@@ -2,7 +2,7 @@
 # Full parameter grid for algorithm: aisle_first
 
 instance_dir: datasets/a
-repetitions: 20
+repetitions: 5
 seed_base: 42
 max_workers: null
 time_limit: 60
@@ -10,59 +10,59 @@ result_dir: results
 save_output: true
 
 algorithms:
-  # - name: af_useful_order-null_prune-null
-  #   algo: aisle_first
-  #   params:
-  #     score: useful
-  #     order: null
-  #     prune: null
-  # - name: af_useful_order-null_prune-simple
-  #   algo: aisle_first
-  #   params:
-  #     score: useful
-  #     order: null
-  #     prune: simple
-  # - name: af_useful_order-null_prune-multi
-  #   algo: aisle_first
-  #   params:
-  #     score: useful
-  #     order: null
-  #     prune: multi
-  # - name: af_useful_order-asc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: useful
-  #     order: asc
-  #     prune: null
-  # - name: af_useful_order-asc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: useful
-  #     order: asc
-  #     prune: simple
-  # - name: af_useful_order-asc_prune-multi
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: useful
-  #     order: asc
-  #     prune: multi
-  # - name: af_useful_order-desc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: useful
-  #     order: desc
-  #     prune: null
-  # - name: af_useful_order-desc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: useful
-  #     order: desc
-  #     prune: simple
+  - name: af_useful_order-null_prune-null
+    algo: aisle_first
+    params:
+      score: useful
+      order: null
+      prune: null
+  - name: af_useful_order-null_prune-simple
+    algo: aisle_first
+    params:
+      score: useful
+      order: null
+      prune: simple
+  - name: af_useful_order-null_prune-multi
+    algo: aisle_first
+    params:
+      score: useful
+      order: null
+      prune: multi
+  - name: af_useful_order-asc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: useful
+      order: asc
+      prune: null
+  - name: af_useful_order-asc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: useful
+      order: asc
+      prune: simple
+  - name: af_useful_order-asc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: useful
+      order: asc
+      prune: multi
+  - name: af_useful_order-desc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: useful
+      order: desc
+      prune: null
+  - name: af_useful_order-desc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: useful
+      order: desc
+      prune: simple
   - name: af_useful_order-desc_prune-multi
     algo: aisle_first
     deterministic: true
@@ -70,296 +70,288 @@ algorithms:
       score: useful
       order: desc
       prune: multi
-  # - name: af_units_order-null_prune-null
-  #   algo: aisle_first
-  #   params:
-  #     score: units
-  #     order: null
-  #     prune: null
-  # - name: af_units_order-null_prune-simple
-  #   algo: aisle_first
-  #   params:
-  #     score: units
-  #     order: null
-  #     prune: simple
-  # - name: af_units_order-null_prune-multi
-  #   algo: aisle_first
-  #   params:
-  #     score: units
-  #     order: null
-  #     prune: multi
-  # - name: af_units_order-asc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: units
-  #     order: asc
-  #     prune: null
-  # - name: af_units_order-asc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: units
-  #     order: asc
-  #     prune: simple
-  # - name: af_units_order-asc_prune-multi
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: units
-  #     order: asc
-  #     prune: multi
-  # - name: af_units_order-desc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: units
-  #     order: desc
-  #     prune: null
-  # - name: af_units_order-desc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: units
-  #     order: desc
-  #     prune: simple
-  # - name: af_units_order-desc_prune-multi
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: units
-  #     order: desc
-  #     prune: multi
-  # - name: af_variety_order-null_prune-null
-  #   algo: aisle_first
-  #   params:
-  #     score: variety
-  #     order: null
-  #     prune: null
-  # - name: af_variety_order-null_prune-simple
-  #   algo: aisle_first
-  #   params:
-  #     score: variety
-  #     order: null
-  #     prune: simple
-  # - name: af_variety_order-null_prune-multi
-  #   algo: aisle_first
-  #   params:
-  #     score: variety
-  #     order: null
-  #     prune: multi
-  # - name: af_variety_order-asc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: variety
-  #     order: asc
-  #     prune: null
-  # - name: af_variety_order-asc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: variety
-  #     order: asc
-  #     prune: simple
-  # - name: af_variety_order-asc_prune-multi
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: variety
-  #     order: asc
-  #     prune: multi
-  # - name: af_variety_order-desc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: variety
-  #     order: desc
-  #     prune: null
-  # - name: af_variety_order-desc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: variety
-  #     order: desc
-  #     prune: simple
-  # - name: af_variety_order-desc_prune-multi
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: variety
-  #     order: desc
-  #     prune: multi
-  # - name: af_mixed_order-null_prune-null
-  #   algo: aisle_first
-  #   params:
-  #     score: mixed
-  #     order: null
-  #     prune: null
-  # - name: af_mixed_order-null_prune-simple
-  #   algo: aisle_first
-  #   params:
-  #     score: mixed
-  #     order: null
-  #     prune: simple
-  # - name: af_mixed_order-null_prune-multi
-  #   algo: aisle_first
-  #   params:
-  #     score: mixed
-  #     order: null
-  #     prune: multi
-  # - name: af_mixed_order-asc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: mixed
-  #     order: asc
-  #     prune: null
-  # - name: af_mixed_order-asc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: mixed
-  #     order: asc
-  #     prune: simple
-  # - name: af_mixed_order-asc_prune-multi
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: mixed
-  #     order: asc
-  #     prune: multi
-  # - name: af_mixed_order-desc_prune-null
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: mixed
-  #     order: desc
-  #     prune: null
-  # - name: af_mixed_order-desc_prune-simple
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: mixed
-  #     order: desc
-  #     prune: simple
-  # - name: af_mixed_order-desc_prune-multi
-  #   algo: aisle_first
-  #   deterministic: true
-  #   params:
-  #     score: mixed
-  #     order: desc
-  #     prune: multi
+  - name: af_units_order-null_prune-null
+    algo: aisle_first
+    params:
+      score: units
+      order: null
+      prune: null
+  - name: af_units_order-null_prune-simple
+    algo: aisle_first
+    params:
+      score: units
+      order: null
+      prune: simple
+  - name: af_units_order-null_prune-multi
+    algo: aisle_first
+    params:
+      score: units
+      order: null
+      prune: multi
+  - name: af_units_order-asc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: units
+      order: asc
+      prune: null
+  - name: af_units_order-asc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: units
+      order: asc
+      prune: simple
+  - name: af_units_order-asc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: units
+      order: asc
+      prune: multi
+  - name: af_units_order-desc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: units
+      order: desc
+      prune: null
+  - name: af_units_order-desc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: units
+      order: desc
+      prune: simple
+  - name: af_units_order-desc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: units
+      order: desc
+      prune: multi
+  - name: af_variety_order-null_prune-null
+    algo: aisle_first
+    params:
+      score: variety
+      order: null
+      prune: null
+  - name: af_variety_order-null_prune-simple
+    algo: aisle_first
+    params:
+      score: variety
+      order: null
+      prune: simple
+  - name: af_variety_order-null_prune-multi
+    algo: aisle_first
+    params:
+      score: variety
+      order: null
+      prune: multi
+  - name: af_variety_order-asc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: variety
+      order: asc
+      prune: null
+  - name: af_variety_order-asc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: variety
+      order: asc
+      prune: simple
+  - name: af_variety_order-asc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: variety
+      order: asc
+      prune: multi
+  - name: af_variety_order-desc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: variety
+      order: desc
+      prune: null
+  - name: af_variety_order-desc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: variety
+      order: desc
+      prune: simple
+  - name: af_variety_order-desc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: variety
+      order: desc
+      prune: multi
+  - name: af_mixed_order-null_prune-null
+    algo: aisle_first
+    params:
+      score: mixed
+      order: null
+      prune: null
+  - name: af_mixed_order-null_prune-simple
+    algo: aisle_first
+    params:
+      score: mixed
+      order: null
+      prune: simple
+  - name: af_mixed_order-null_prune-multi
+    algo: aisle_first
+    params:
+      score: mixed
+      order: null
+      prune: multi
+  - name: af_mixed_order-asc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: mixed
+      order: asc
+      prune: null
+  - name: af_mixed_order-asc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: mixed
+      order: asc
+      prune: simple
+  - name: af_mixed_order-asc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: mixed
+      order: asc
+      prune: multi
+  - name: af_mixed_order-desc_prune-null
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: mixed
+      order: desc
+      prune: null
+  - name: af_mixed_order-desc_prune-simple
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: mixed
+      order: desc
+      prune: simple
+  - name: af_mixed_order-desc_prune-multi
+    algo: aisle_first
+    deterministic: true
+    params:
+      score: mixed
+      order: desc
+      prune: multi
   # Exact-order variant: replaces the greedy pack_orders step with a CP-SAT
   # ILP that maximises total units for the fixed aisle prefix at each k.
   # `order` only affects the fallback when the ILP can't find a feasible
   # solution within `time_limit_per_k`, so we fix it to `desc` and grid only
   # over score × prune.
-  - name: afe_useful_prune-null
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: useful
-      order: desc
-      prune: null
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_useful_prune-simple
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: useful
-      order: desc
-      prune: simple
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_useful_prune-multi
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: useful
-      order: desc
-      prune: multi
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_units_prune-null
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: units
-      order: desc
-      prune: null
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_units_prune-simple
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: units
-      order: desc
-      prune: simple
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_units_prune-multi
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: units
-      order: desc
-      prune: multi
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_variety_prune-null
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: variety
-      order: desc
-      prune: null
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_variety_prune-simple
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: variety
-      order: desc
-      prune: simple
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_variety_prune-multi
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: variety
-      order: desc
-      prune: multi
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_mixed_prune-null
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: mixed
-      order: desc
-      prune: null
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_mixed_prune-simple
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: mixed
-      order: desc
-      prune: simple
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
-  - name: afe_mixed_prune-multi
-    algo: aisle_first_exact
-    deterministic: true
-    params:
-      score: mixed
-      order: desc
-      prune: multi
-      time_limit_per_k: 2.0
-      total_time_limit: 60.0
+  # - name: afe_useful_prune-null
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: useful
+  #     order: desc
+  #     prune: null
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_useful_prune-simple
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: useful
+  #     order: desc
+  #     prune: simple
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_useful_prune-multi
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: useful
+  #     order: desc
+  #     prune: multi
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_units_prune-null
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: units
+  #     order: desc
+  #     prune: null
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_units_prune-simple
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: units
+  #     order: desc
+  #     prune: simple
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_units_prune-multi
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: units
+  #     order: desc
+  #     prune: multi
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_variety_prune-null
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: variety
+  #     order: desc
+  #     prune: null
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_variety_prune-simple
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: variety
+  #     order: desc
+  #     prune: simple
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_variety_prune-multi
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: variety
+  #     order: desc
+  #     prune: multi
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_mixed_prune-null
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: mixed
+  #     order: desc
+  #     prune: null
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  # - name: afe_mixed_prune-simple
+  #   algo: aisle_first_exact
+  #   deterministic: true
+  #   params:
+  #     score: mixed
+  #     order: desc
+  #     prune: simple
+  #     time_limit_per_k: 2.0
+  #     total_time_limit: 60.0
+  

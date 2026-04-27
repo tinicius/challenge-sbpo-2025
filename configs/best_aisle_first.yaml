@@ -1,0 +1,56 @@
+instance_dir: datasets/a
+repetitions: 30
+seed_base: 42
+max_workers: null
+time_limit: 60
+result_dir: results
+save_output: true
+
+algorithms:
+
+- name: afe_useful_order-desc_prune-multi
+  algo: aisle_first_exact
+  deterministic: true
+  params:
+    score: useful
+    order: desc
+    # prune: multi
+    time_limit_per_k: 2.0
+    total_time_limit: 60.0
+
+# - name: afe_useful_order-null_prune-multi
+#   algo: aisle_first_exact
+#   params:
+#     score: useful
+#     order: null
+#     prune: multi
+#     time_limit_per_k: 2.0
+#     total_time_limit: 60.0
+
+- name: af_useful_order-desc_prune-multi
+  algo: aisle_first
+  deterministic: true
+  params:
+    score: useful
+    order: desc
+    prune: multi
+      
+- name: af_useful_order-null_prune-multi
+  algo: aisle_first
+  params:
+    score: useful
+    order: null
+    prune: multi
+
+- name: af_useful_order-desc
+  algo: aisle_first
+  deterministic: true
+  params:
+    score: useful
+    order: desc
+      
+- name: af_useful_order-null
+  algo: aisle_first
+  params:
+    score: useful
+    order: null
