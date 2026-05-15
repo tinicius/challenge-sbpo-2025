@@ -1,0 +1,39 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+# Savings Heuristic adapted from Clarke and Wright (1964) and Bozer and Kile (2008).
+
+instance_dir: datasets/a
+repetitions: 5
+seed_base: 42
+max_workers: null
+time_limit: 300
+result_dir: results
+save_output: true
+
+algorithms:
+  - name: savings_normalized_multi
+    algo: savings
+    deterministic: true
+    params:
+      normalized: true
+      greedy: multi
+
+  - name: savings_absolute_multi
+    algo: savings
+    deterministic: true
+    params:
+      normalized: false
+      greedy: multi
+
+  - name: savings_normalized_simple
+    algo: savings
+    deterministic: true
+    params:
+      normalized: true
+      greedy: simple
+
+  - name: savings_absolute_simple
+    algo: savings
+    deterministic: true
+    params:
+      normalized: false
+      greedy: simple

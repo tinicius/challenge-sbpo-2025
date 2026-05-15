@@ -9,10 +9,10 @@
 # S/R capacities and storage-assignment policies, so it is listed first.
 
 instance_dir: datasets/a
-repetitions: 1
+repetitions: 5
 seed_base: 42
 max_workers: null
-time_limit: 90
+time_limit: 300
 result_dir: results
 save_output: true
 

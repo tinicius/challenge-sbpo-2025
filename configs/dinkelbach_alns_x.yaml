@@ -1,0 +1,36 @@
+instance_dir: datasets/x
+repetitions: 1
+seed_base: 42
+max_workers: null
+time_limit: 60
+result_dir: results
+save_output: false
+
+algorithms:
+  - name: dalns_default
+    algo: dalns
+    deterministic: false
+    params:
+      time_limit: 60
+      seed: 42
+      alns:
+        gamma_min: 0.10
+        gamma_max: 0.40
+        T_start: 1.0
+        T_end: 0.001
+        cooling: 0.9995
+        sigma1: 33
+        sigma2: 9
+        sigma3: 3
+        decay: 0.8
+        lam_update_interval: 50
+        flush_interval: 100
+        time_check_interval: 1
+      local_branching:
+        enabled: true
+        k_values: [5, 10, 20]
+        num_workers: 4
+      multi_start:
+        enabled: true
+        max_starts: 4
+        min_time_per_start: 8.0

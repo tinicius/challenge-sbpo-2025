@@ -22,6 +22,31 @@ result_dir: results
 save_output: True
 
 algorithms:
+  - name: bigger_exact
+    algo: simple
+    deterministic: True
+    params:
+      order: desc
+      greedy: simple
+      exact: true
+
+  - name: bigger_multi
+    algo: simple
+    deterministic: True
+    params:
+      order: desc
+      greedy: multi
+
+  - name: pan_liu_sd2_oa2
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD2, add_rule: OA2, greedy: simple }
+
+  - name: pan_liu_sd4_oa2
+    algo: pan_liu
+    deterministic: true
+    params: { seed_rule: SD4, add_rule: OA2, greedy: simple }
+
   - name: af_useful_order-desc_prune-multi
     algo: aisle_first
     deterministic: true
@@ -29,180 +54,52 @@ algorithms:
       score: useful
       order: desc
       prune: multi
-  
-  # - name: bigger_multi
-  #   algo: simple
-  #   deterministic: True
-  #   params:
-  #     order: desc
-  #     greedy: multi
 
-  # - name: ga_base_uniform_seeded_random
-  #   algo: ga
-  #   params:
-  #     variant: BaseGA
-  #     pop_size: 50
-  #     epoch: 300
-  #     pc: 0.9
-  #     pm: 0.05
-  #     selection: tournament
-  #     crossover: uniform
-  #     mutation: flip
-  #     k_way: 0.2
-  #     aisle_selector: multi
-  #     seed_with_heuristics: true
-  #     start: random
-
-  # - name: ga_base_uniform_seeded_aisle
-  #   algo: ga
-  #   params:
-  #     variant: BaseGA
-  #     pop_size: 50
-  #     epoch: 300
-  #     pc: 0.9
-  #     pm: 0.05
-  #     selection: tournament
-  #     crossover: uniform
-  #     mutation: flip
-  #     k_way: 0.2
-  #     aisle_selector: multi
-  #     seed_with_heuristics: true
-  #     start: seed_aisle
-
-  - name: ga_base_uniform_seeded_useful_aisle
-    algo: ga
+  - name: af_useful_order-null_prune-multi
+    algo: aisle_first
     params:
-      variant: BaseGA
-      pop_size: 50
-      epoch: 300
-      pc: 0.9
-      pm: 0.05
-      selection: tournament
-      crossover: uniform
-      mutation: flip
-      k_way: 0.2
-      aisle_selector: multi
-      seed_with_heuristics: true
-      start: seed_aisle
+      score: useful
+      order: null
+      prune: multi
 
-  - name: ga_ls_on_seeds
-    algo: ga
+  - name: ils_seed
+    algo: ils
+    deterministic: false
     params:
-      variant: BaseGA
-      pop_size: 50
-      epoch: 300
-      pc: 0.9
-      pm: 0.05
-      selection: tournament
-      crossover: uniform
-      mutation: flip
-      k_way: 0.2
-      seed_with_heuristics: true
-      start: seed_aisle
-      local_search:
-        mode: on_seeds
-        operators: [remove, swap, add]
-        strategy: first_improvement
-        max_iterations: 200
-        time_fraction: 0.2
-        neighbor_cap: 50
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: simple
 
-  - name: ga_ls_final
-    algo: ga
+  - name: ils_simple
+    algo: ils
+    deterministic: false
     params:
-      variant: BaseGA
-      pop_size: 50
-      epoch: 300
-      pc: 0.9
-      pm: 0.05
-      selection: tournament
-      crossover: uniform
-      mutation: flip
-      k_way: 0.2
-      seed_with_heuristics: true
-      start: seed_aisle
-      local_search:
-        mode: final
-        operators: [remove, swap, add]
-        strategy: first_improvement
-        max_iterations: 400
-        time_fraction: 0.25
-        neighbor_cap: 80
+      initial_heuristic: simple
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: multi
 
-  - name: ga_ls_both
-    algo: ga
+  - name: ils_aisle_first
+    algo: ils
+    deterministic: false
     params:
-      variant: BaseGA
-      pop_size: 50
-      epoch: 300
-      pc: 0.9
-      pm: 0.05
-      selection: tournament
-      crossover: uniform
-      mutation: flip
-      k_way: 0.2
-      seed_with_heuristics: true
-      start: seed_aisle
-      local_search:
-        mode: both
-        operators: [remove, swap, add]
-        strategy: first_improvement
-        max_iterations: 200
-        time_fraction: 0.3
-        neighbor_cap: 60
-
-  - name: ga_ls_periodic
-    algo: ga
-    params:
-      variant: BaseGA
-      pop_size: 50
-      epoch: 300
-      pc: 0.9
-      pm: 0.05
-      selection: tournament
-      crossover: uniform
-      mutation: flip
-      k_way: 0.2
-      seed_with_heuristics: true
-      start: seed_aisle
-      local_search:
-        mode: periodic
-        operators: [remove, swap, add]
-        strategy: first_improvement
-        max_iterations: 100
-        elite_size: 2
-        period: 50
-        time_fraction: 0.25
-        neighbor_cap: 50
-
-  # - name: ga_full
-  #   algo: ga_full
-  #   params:
-  #     variant: BaseGA
-  #     pop_size: 50
-  #     epoch: 300
-  #     pc: 0.9
-  #     pm: 0.05
-  #     selection: tournament
-  #     crossover: uniform
-  #     mutation: flip
-  #     k_way: 0.2
-  #     aisle_selector: multi
-  #     seed_with_heuristics: true
-  #     start: useful_seed_aisle
-
-  # - name: ga_full_25
-  #   algo: ga_full
-  #   params:
-  #     variant: BaseGA
-  #     pop_size: 25
-  #     epoch: 300
-  #     pc: 0.9
-  #     pm: 0.05
-  #     selection: tournament
-  #     crossover: uniform
-  #     mutation: flip
-  #     k_way: 0.2
-  #     aisle_selector: multi
-  #     seed_with_heuristics: true
-  #     start: useful_seed_aisle
+      initial_heuristic: aisle_first
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: multi

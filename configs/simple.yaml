@@ -1,7 +1,7 @@
 # Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
 
 # Dataset to run experiments on
-instance_dir: datasets/a
+instance_dir: datasets/x
 
 # Number of repetitions per (algorithm, instance) pair
 repetitions: 5
@@ -19,373 +19,743 @@ time_limit: 90
 result_dir: results
 
 # Save problem output (selected orders and aisles) to CSV (default: false)
-save_output: True
+save_output: true
 
 algorithms:
-  # --- Greedy heuristics ---
 
-  # Size / random based
-
-  - name: random
+  - name: simple_random_simple_exact_false
     algo: simple
+    deterministic: false
     params:
+      order: null
       greedy: simple
+      exact: false
 
-  - name: random_multi
+  - name: simple_random_simple_exact_true
     algo: simple
+    deterministic: false
     params:
-      greedy: multi
-
-  - name: smaller
-    algo: simple
-    deterministic: True
-    params:
-      order: asc
-      greedy: simple
-
-  - name: smaller_multi
-    algo: simple
-    deterministic: True
-    params:
-      order: asc
-      greedy: multi
-
-  - name: bigger
-    algo: simple
-    deterministic: True
-    params:
-      order: desc
-      greedy: simple
-
-  - name: bigger_multi
-    algo: simple
-    deterministic: True
-    params:
-      order: desc
-      greedy: multi
-
-  # Similarity based (unweighted Jaccard over item keys)
-
-  - name: similar
-    algo: simple
-    params:
-      greedy: simple
-      order: similar
-
-  - name: similar_multi
-    algo: simple
-    params:
-      greedy: multi
-      order: similar
-
-  - name: similar_smaller
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: similar
-      first_order: smaller
-
-  - name: similar_smaller_multi
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: similar
-      first_order: smaller
-
-  - name: similar_bigger
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: similar
-      first_order: bigger
-
-  - name: similar_bigger_multi
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: similar
-      first_order: bigger
-
-  # Diff based (least similar first)
-
-  - name: diff
-    algo: simple
-    params:
-      greedy: simple
-      order: diff
-
-  - name: diff_multi
-    algo: simple
-    params:
-      greedy: multi
-      order: diff
-
-  - name: diff_smaller
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: diff
-      first_order: smaller
-
-  - name: diff_smaller_multi
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: diff
-      first_order: smaller
-
-  - name: diff_bigger
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: diff
-      first_order: bigger
-
-  - name: diff_bigger_multi
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: diff
-      first_order: bigger
-
-  # Similarity based (weighted Jaccard over item quantities)
-
-  - name: similar_weighted
-    algo: simple
-    params:
-      greedy: simple
-      order: similar
-      similarity_weighted: true
-
-  - name: similar_multi_weighted
-    algo: simple
-    params:
-      greedy: multi
-      order: similar
-      similarity_weighted: true
-
-  - name: similar_smaller_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: similar
-      first_order: smaller
-      similarity_weighted: true
-
-  - name: similar_smaller_multi_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: similar
-      first_order: smaller
-      similarity_weighted: true
-
-  - name: similar_bigger_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: similar
-      first_order: bigger
-      similarity_weighted: true
-
-  - name: similar_bigger_multi_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: similar
-      first_order: bigger
-      similarity_weighted: true
-
-  # Diff based (weighted Jaccard over item quantities)
-
-  - name: diff_weighted
-    algo: simple
-    params:
-      greedy: simple
-      order: diff
-      similarity_weighted: true
-
-  - name: diff_multi_weighted
-    algo: simple
-    params:
-      greedy: multi
-      order: diff
-      similarity_weighted: true
-
-  - name: diff_smaller_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: diff
-      first_order: smaller
-      similarity_weighted: true
-
-  - name: diff_smaller_multi_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: diff
-      first_order: smaller
-      similarity_weighted: true
-
-  - name: diff_bigger_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: diff
-      first_order: bigger
-      similarity_weighted: true
-
-  - name: diff_bigger_multi_weighted
-    algo: simple
-    deterministic: True
-    params:
-      greedy: multi
-      order: diff
-      first_order: bigger
-      similarity_weighted: true
-
-  # Exact aisle selection (Gurobi) using the same order construction variants
-
-  - name: random_exact
-    algo: simple
-    params:
+      order: null
       greedy: simple
       exact: true
 
-  - name: smaller_exact
+  - name: simple_random_multi_exact_false
     algo: simple
-    deterministic: True
+    deterministic: false
+    params:
+      order: null
+      greedy: multi
+      exact: false
+
+  - name: simple_random_multi_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: null
+      greedy: multi
+      exact: true
+
+  - name: simple_asc_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: asc
+      greedy: simple
+      exact: false
+
+  - name: simple_asc_simple_exact_true
+    algo: simple
+    deterministic: true
     params:
       order: asc
       greedy: simple
       exact: true
 
-  - name: bigger_exact
+  - name: simple_asc_multi_exact_false
     algo: simple
-    deterministic: True
+    deterministic: true
+    params:
+      order: asc
+      greedy: multi
+      exact: false
+
+  - name: simple_asc_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: asc
+      greedy: multi
+      exact: true
+
+  - name: simple_desc_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: desc
+      greedy: simple
+      exact: false
+
+  - name: simple_desc_simple_exact_true
+    algo: simple
+    deterministic: true
     params:
       order: desc
       greedy: simple
       exact: true
 
-  - name: similar_exact
+  - name: simple_desc_multi_exact_false
     algo: simple
+    deterministic: true
     params:
-      greedy: simple
-      order: similar
+      order: desc
+      greedy: multi
+      exact: false
+
+  - name: simple_desc_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: desc
+      greedy: multi
       exact: true
 
-  - name: similar_smaller_exact
+  - name: simple_similar_first_null_weighted_false_simple_exact_false
     algo: simple
-    deterministic: True
+    deterministic: false
     params:
+      order: similar
+      first_order: null
+      similarity_weighted: false
       greedy: simple
+      exact: false
+
+  - name: simple_similar_first_null_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: similar
+      first_order: null
+      similarity_weighted: false
+      greedy: simple
+      exact: true
+
+  - name: simple_similar_first_null_weighted_false_multi_exact_false
+    algo: simple
+    deterministic: false
+    params:
+      order: similar
+      first_order: null
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_null_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: similar
+      first_order: null
+      similarity_weighted: false
+      greedy: multi
+      exact: true
+
+  - name: simple_similar_first_null_weighted_true_simple_exact_false
+    algo: simple
+    deterministic: false
+    params:
+      order: similar
+      first_order: null
+      similarity_weighted: true
+      greedy: simple
+      exact: false
+
+  - name: simple_similar_first_null_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: similar
+      first_order: null
+      similarity_weighted: true
+      greedy: simple
+      exact: true
+
+  - name: simple_similar_first_null_weighted_true_multi_exact_false
+    algo: simple
+    deterministic: false
+    params:
+      order: similar
+      first_order: null
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_null_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: similar
+      first_order: null
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+
+  - name: simple_similar_first_smaller_weighted_false_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
       order: similar
       first_order: smaller
-      exact: true
-
-  - name: similar_bigger_exact
-    algo: simple
-    deterministic: True
-    params:
+      similarity_weighted: false
       greedy: simple
+      exact: false
+
+  - name: simple_similar_first_smaller_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
       order: similar
-      first_order: bigger
-      exact: true
-
-  - name: diff_exact
-    algo: simple
-    params:
-      greedy: simple
-      order: diff
-      exact: true
-
-  - name: diff_smaller_exact
-    algo: simple
-    deterministic: True
-    params:
-      greedy: simple
-      order: diff
       first_order: smaller
+      similarity_weighted: false
+      greedy: simple
       exact: true
 
-  - name: diff_bigger_exact
+  - name: simple_similar_first_smaller_weighted_false_multi_exact_false
     algo: simple
-    deterministic: True
+    deterministic: true
     params:
-      greedy: simple
-      order: diff
-      first_order: bigger
-      exact: true
-
-  - name: similar_exact_weighted
-    algo: simple
-    params:
-      greedy: simple
       order: similar
-      similarity_weighted: true
+      first_order: smaller
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_smaller_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: smaller
+      similarity_weighted: false
+      greedy: multi
       exact: true
 
-  - name: similar_smaller_exact_weighted
+  - name: simple_similar_first_smaller_weighted_true_simple_exact_false
     algo: simple
-    deterministic: True
+    deterministic: true
     params:
-      greedy: simple
       order: similar
       first_order: smaller
       similarity_weighted: true
+      greedy: simple
+      exact: false
+
+  - name: simple_similar_first_smaller_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: smaller
+      similarity_weighted: true
+      greedy: simple
       exact: true
 
-  - name: similar_bigger_exact_weighted
+  - name: simple_similar_first_smaller_weighted_true_multi_exact_false
     algo: simple
-    deterministic: True
+    deterministic: true
     params:
+      order: similar
+      first_order: smaller
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_smaller_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: smaller
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+
+  - name: simple_similar_first_bigger_weighted_false_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: bigger
+      similarity_weighted: false
       greedy: simple
+      exact: false
+
+  - name: simple_similar_first_bigger_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: bigger
+      similarity_weighted: false
+      greedy: simple
+      exact: true
+
+  - name: simple_similar_first_bigger_weighted_false_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: bigger
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_bigger_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: bigger
+      similarity_weighted: false
+      greedy: multi
+      exact: true
+
+  - name: simple_similar_first_bigger_weighted_true_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
       order: similar
       first_order: bigger
       similarity_weighted: true
-      exact: true
-
-  - name: diff_exact_weighted
-    algo: simple
-    params:
       greedy: simple
-      order: diff
+      exact: false
+
+  - name: simple_similar_first_bigger_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: bigger
       similarity_weighted: true
+      greedy: simple
       exact: true
 
-  - name: diff_smaller_exact_weighted
+  - name: simple_similar_first_bigger_weighted_true_multi_exact_false
     algo: simple
-    deterministic: True
+    deterministic: true
     params:
+      order: similar
+      first_order: bigger
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_bigger_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: bigger
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+
+  - name: simple_similar_first_most_shared_weighted_false_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: false
       greedy: simple
+      exact: false
+
+  - name: simple_similar_first_most_shared_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: false
+      greedy: simple
+      exact: true
+
+  - name: simple_similar_first_most_shared_weighted_false_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_most_shared_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: false
+      greedy: multi
+      exact: true
+
+  - name: simple_similar_first_most_shared_weighted_true_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: simple
+      exact: false
+
+  - name: simple_similar_first_most_shared_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: simple
+      exact: true
+
+  - name: simple_similar_first_most_shared_weighted_true_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_similar_first_most_shared_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: similar
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_null_weighted_false_simple_exact_false
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: false
+      greedy: simple
+      exact: false
+
+  - name: simple_diff_first_null_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: false
+      greedy: simple
+      exact: true
+
+  - name: simple_diff_first_null_weighted_false_multi_exact_false
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_null_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: false
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_null_weighted_true_simple_exact_false
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: true
+      greedy: simple
+      exact: false
+
+  - name: simple_diff_first_null_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: true
+      greedy: simple
+      exact: true
+
+  - name: simple_diff_first_null_weighted_true_multi_exact_false
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_null_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      first_order: null
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_smaller_weighted_false_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: smaller
+      similarity_weighted: false
+      greedy: simple
+      exact: false
+
+  - name: simple_diff_first_smaller_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: smaller
+      similarity_weighted: false
+      greedy: simple
+      exact: true
+
+  - name: simple_diff_first_smaller_weighted_false_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: smaller
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_smaller_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: smaller
+      similarity_weighted: false
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_smaller_weighted_true_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
       order: diff
       first_order: smaller
       similarity_weighted: true
+      greedy: simple
+      exact: false
+
+  - name: simple_diff_first_smaller_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: smaller
+      similarity_weighted: true
+      greedy: simple
       exact: true
 
-  - name: diff_bigger_exact_weighted
+  - name: simple_diff_first_smaller_weighted_true_multi_exact_false
     algo: simple
-    deterministic: True
+    deterministic: true
     params:
+      order: diff
+      first_order: smaller
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_smaller_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: smaller
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_bigger_weighted_false_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: bigger
+      similarity_weighted: false
       greedy: simple
+      exact: false
+
+  - name: simple_diff_first_bigger_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: bigger
+      similarity_weighted: false
+      greedy: simple
+      exact: true
+
+  - name: simple_diff_first_bigger_weighted_false_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: bigger
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_bigger_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: bigger
+      similarity_weighted: false
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_bigger_weighted_true_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
       order: diff
       first_order: bigger
       similarity_weighted: true
+      greedy: simple
+      exact: false
+
+  - name: simple_diff_first_bigger_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: bigger
+      similarity_weighted: true
+      greedy: simple
       exact: true
+
+  - name: simple_diff_first_bigger_weighted_true_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: bigger
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_bigger_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: bigger
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_most_shared_weighted_false_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: false
+      greedy: simple
+      exact: false
+
+  - name: simple_diff_first_most_shared_weighted_false_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: false
+      greedy: simple
+      exact: true
+
+  - name: simple_diff_first_most_shared_weighted_false_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: false
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_most_shared_weighted_false_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: false
+      greedy: multi
+      exact: true
+
+  - name: simple_diff_first_most_shared_weighted_true_simple_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: simple
+      exact: false
+
+  - name: simple_diff_first_most_shared_weighted_true_simple_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: simple
+      exact: true
+
+  - name: simple_diff_first_most_shared_weighted_true_multi_exact_false
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: multi
+      exact: false
+
+  - name: simple_diff_first_most_shared_weighted_true_multi_exact_true
+    algo: simple
+    deterministic: true
+    params:
+      order: diff
+      first_order: most_shared
+      similarity_weighted: true
+      greedy: multi
+      exact: true
+

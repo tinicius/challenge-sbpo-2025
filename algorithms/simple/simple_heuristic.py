@@ -8,7 +8,9 @@ from algorithms.utils.similarity import similarity
 from problems.base import ProblemInput
 
 _VALID_ORDER = {None, "asc", "desc", "similar", "diff"}
+
 _VALID_GREEDY = {"simple", "multi"}
+
 _VALID_FIRST_ORDER = {None, "smaller", "bigger", "most_shared"}
 
 _EMPTY_RESULT = {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
@@ -92,6 +94,7 @@ class SimpleHeuristic(Algorithm):
         indices = self._build_traversal(instance.nOrders, order_sizes, orders, aisles)
 
         stock = self._aggregate_stock(aisles)
+
         selected_orders, demand, total_units = self._pick_orders(
             indices, orders, order_sizes, stock, ub
         )

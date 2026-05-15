@@ -5,6 +5,8 @@ from algorithms.aisle_first.aisle_first_heuristic import AisleFirstHeuristic
 from algorithms.simple.simple_heuristic import SimpleHeuristic
 from algorithms.pan_liu.pan_liu_heuristic import PanLiuHeuristic
 from algorithms.dinkelbach_alns.algorithm import DinkelbachALNS
+from algorithms.savings.savings_heuristic import SavingsHeuristic
+from algorithms.ils.ils_heuristic import ILSHeuristic
 
 from problems.base import ProblemInput, load_instance
 from problems.validation import is_solution_feasible, compute_objective
@@ -66,10 +68,10 @@ def run_with_timeout(solver, instance, timeout=90):
 
 
 if __name__ == "__main__":
-    instance_path = "datasets/a/instance_0007.txt"
+    instance_path = "datasets/a/instance_0014.txt"
     instance = load_instance(instance_path)
 
-    TIMEOUT_SECONDS = 180  # 3 minutes per solver
+    TIMEOUT_SECONDS = 300  # 5 minutes per solver
 
     solvers = [
         # {
@@ -91,12 +93,12 @@ if __name__ == "__main__":
         #         }
         #     ),
         # },
-        {
-            "name": "aisle_first",
-            "solver": AisleFirstHeuristic(
-                {"score": "useful", "order": "desc", "prune": "multi"}
-            ),
-        },
+        # {
+        #     "name": "aisle_first",
+        #     "solver": AisleFirstHeuristic(
+        #         {"score": "useful", "order": "desc", "prune": "multi"}
+        #     ),
+        # },
         # {
         #     "name": "ga_full",
         #     "solver": GeneticAlgorithm(
@@ -125,16 +127,68 @@ if __name__ == "__main__":
         #         }
         #     ),
         # },
+        # {
+        #     "name": "dinkelbach_alns",
+        #     "solver": DinkelbachALNS(
+        #         {
+        #             "time_limit": TIMEOUT_SECONDS
+        #             * 0.95,  # Reserve 95% of timeout for ALNS search
+        #             "seed": 42,
+        #         }
+        #     ),
+        # },
         {
-            "name": "dinkelbach_alns",
-            "solver": DinkelbachALNS(
+            "name": "Pan_Liu_Heuristic",
+            "solver": PanLiuHeuristic(
+                {"seed_rule": "SD3", "add_rule": "OA3", "greedy": "multi"}
+            ),
+        },
+        {
+            "name": "Savings_Normalized",
+            "solver": SavingsHeuristic(
+                {"normalized": True, "greedy": "multi"}
+            ),
+        },
+        {
+            "name": "Savings_Absolute",
+            "solver": SavingsHeuristic(
+                {"normalized": False, "greedy": "multi"}
+            ),
+        },
+        {
+            "name": "ILS_Seed",
+            "solver": ILSHeuristic(
                 {
-                    "time_limit": TIMEOUT_SECONDS
-                    * 0.95,  # Reserve 95% of timeout for ALNS search
+                    "initial_heuristic": "seed",
+                    "ls_operators": ["swap", "add", "remove"],
+                    "ls_strategy": "first_improvement",
+                    "ls_max_iterations": 100,
+                    "neighbor_cap": 50,
+                    "shake_k": 3,
+                    "shake_adaptive": True,
+                    "max_iterations": 50,
+                    "greedy": "simple",
                     "seed": 42,
                 }
             ),
         },
+        {
+            "name": "ILS_Simple",
+            "solver": ILSHeuristic(
+                {
+                    "initial_heuristic": "simple",
+                    "ls_operators": ["swap", "add", "remove"],
+                    "ls_strategy": "first_improvement",
+                    "ls_max_iterations": 100,
+                    "neighbor_cap": 50,
+                    "shake_k": 3,
+                    "shake_adaptive": True,
+                    "max_iterations": 50,
+                    "greedy": "multi",
+                    "seed": 42,
+                }
+            ),
+        }
     ]
 
     for solver_info in solvers:

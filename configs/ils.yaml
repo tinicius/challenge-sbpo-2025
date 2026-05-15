@@ -1,0 +1,207 @@
+# ILS (Iterated Local Search) Configurations
+# 
+# Paradigm: trajectory-based, local search with perturbations
+# Justification: Simplest metaheuristic capable of consistently escaping local optima
+# Components: local search with swap/add/remove neighborhoods + k-shake perturbation
+# Acceptance: better-only
+
+instance_dir: datasets/a
+repetitions: 1
+seed_base: 42
+max_workers: null
+time_limit: 60
+result_dir: results
+save_output: true
+
+algorithms:
+  # ---- Baseline ILS with Seed initialization ----
+  - name: ils_seed_baseline
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- ILS with Simple initialization ----
+  - name: ils_simple_baseline
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: simple
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: multi
+      seed: 42
+
+  # ---- ILS with Aisle-First initialization ----
+  - name: ils_af_baseline
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: aisle_first
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: multi
+      seed: 42
+
+  # ---- Best-improvement strategy (more thorough local search) ----
+  - name: ils_best_improvement
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: best_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- Larger perturbation (shake_k=5) ----
+  - name: ils_large_shake
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 5
+      shake_adaptive: false
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- Smaller perturbation (shake_k=2) ----
+  - name: ils_small_shake
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 2
+      shake_adaptive: false
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- More local search iterations ----
+  - name: ils_more_ls_iter
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 200
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- More ILS iterations ----
+  - name: ils_more_ils_iter
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 100
+      greedy: simple
+      seed: 42
+
+  # ---- Swap-only neighborhood ----
+  - name: ils_swap_only
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- Add-remove only ----
+  - name: ils_add_remove
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- Larger neighbor cap (more thorough search) ----
+  - name: ils_large_neighbor_cap
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 100
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: simple
+      seed: 42
+
+  # ---- Multi-greedy aisle selection ----
+  - name: ils_multi_greedy
+    algo: ils
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      ls_strategy: first_improvement
+      ls_max_iterations: 100
+      neighbor_cap: 50
+      shake_k: 3
+      shake_adaptive: true
+      max_iterations: 50
+      greedy: multi
+      seed: 42

@@ -1,5 +1,9 @@
 import time
 
+from algorithms.aisle_first._local_search import (
+    apply_local_search,
+    validate_local_search,
+)
 from algorithms.base import Algorithm
 from algorithms.utils.aisle_rank import (
     VALID_AISLE_SCORE,
@@ -61,6 +65,9 @@ class AisleFirstExactOrders(Algorithm):
         self._time_limit_per_k = time_limit_per_k
         self._total_time_limit = total_time_limit
         self._fallback_greedy = bool(params.get("fallback_greedy", True))
+        self._local_search = validate_local_search(
+            params.get("local_search"), owner="AisleFirstExactOrders"
+        )
 
     @property
     def name(self) -> str:
@@ -92,7 +99,6 @@ class AisleFirstExactOrders(Algorithm):
 
         best_orders: list[int] = []
         best_aisles: list[int] = []
-        best_units = 0
         best_obj = 0.0
 
         inventory: dict[int, int] = {}
@@ -100,7 +106,10 @@ class AisleFirstExactOrders(Algorithm):
             for item, qty in aisles[aisle_idx].items():
                 inventory[item] = inventory.get(item, 0) + qty
 
-            if ub / k <= best_obj:
+            # Early-stop only valid when prune is disabled: with prune the
+            # achievable obj for this k is total_units / |visited| ≥ ub / k,
+            # so the bound ub/k ≤ best_obj is no longer a safe cutoff.
+            if self._prune is None and ub / k <= best_obj:
                 break
 
             if deadline is not None:
@@ -126,33 +135,43 @@ class AisleFirstExactOrders(Algorithm):
                 else:
                     continue
 
-            obj = total_units / k
+            if self._prune is not None:
+                demand = aggregate_demand_from(orders, selected_orders)
+                visited = (
+                    multi_greedy_aisle_select(demand, aisles)
+                    if self._prune == "multi"
+                    else greedy_aisle_select(demand, aisles)
+                )
+                if not visited:
+                    continue
+                obj = total_units / len(visited)
+                aisles_for_k = visited
+            else:
+                obj = total_units / k
+                aisles_for_k = ranked_aisles[:k]
+
             if obj > best_obj:
                 best_obj = obj
-                best_units = total_units
                 best_orders = selected_orders
-                best_aisles = ranked_aisles[:k]
+                best_aisles = aisles_for_k
 
         if not best_orders:
             return dict(_EMPTY_RESULT)
 
-        if self._prune is not None:
-            demand = aggregate_demand_from(orders, best_orders)
-            visited = (
-                multi_greedy_aisle_select(demand, aisles)
-                if self._prune == "multi"
-                else greedy_aisle_select(demand, aisles)
-            )
-            if not visited:
-                return dict(_EMPTY_RESULT)
-            return {
-                "selected_orders": best_orders,
-                "visited_aisles": visited,
-                "objective": best_units / len(visited),
-            }
-
-        return {
+        result = {
             "selected_orders": best_orders,
             "visited_aisles": best_aisles,
             "objective": best_obj,
         }
+
+        if self._local_search is not None:
+            result = apply_local_search(
+                result,
+                instance,
+                self._prune,
+                self._local_search,
+                order_sequence,
+                order_sizes,
+            )
+
+        return result

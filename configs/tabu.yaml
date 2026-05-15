@@ -1,0 +1,177 @@
+# Tabu Search (short-term memory) Configurations
+#
+# Paradigm: trajectory-based with attribute-based tabu list
+# Reference: Henn & Wäscher (EJOR 2012)
+# Components: tabu_in/tabu_out attributes, aspiration criterion,
+#             best-improvement move selection, 1-swap + 1-add + 1-remove neighborhoods
+# Contrast: same neighborhoods and construction as ILS, only memory mechanism differs
+
+instance_dir: datasets/a
+repetitions: 3
+seed_base: 42
+max_workers: null
+time_limit: 60
+result_dir: results
+save_output: true
+
+algorithms:
+  # ---- Baseline: seed init, tenure=10, all neighborhoods, aspiration on ----
+  - name: tabu_baseline
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  # ---- Vary initial heuristic ----
+  - name: tabu_simple_init
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: simple
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  - name: tabu_aisle_first_init
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: aisle_first
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  # ---- Tabu tenure calibration ----
+  - name: tabu_short_tenure
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 5
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  - name: tabu_long_tenure
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 20
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  - name: tabu_very_long_tenure
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 40
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  # ---- Aspiration ablation ----
+  - name: tabu_no_aspiration
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: false
+      greedy: simple
+      seed: 42
+
+  # ---- Neighborhood ablation ----
+  - name: tabu_swap_only
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap]
+      neighbor_cap: 50
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  - name: tabu_add_remove
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  # ---- Larger neighbor cap ----
+  - name: tabu_large_neighbor_cap
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 100
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: simple
+      seed: 42
+
+  # ---- Multi-greedy aisle selection ----
+  - name: tabu_multi_greedy
+    algo: tabu
+    deterministic: false
+    params:
+      initial_heuristic: seed
+      ls_operators: [swap, add, remove]
+      neighbor_cap: 50
+      tabu_tenure: 10
+      max_iterations: 1000
+      max_idle_iterations: 200
+      aspiration: true
+      greedy: multi
+      seed: 42

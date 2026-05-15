@@ -8,6 +8,9 @@ from algorithms.seed.seed_heuristic import SeedHeuristic
 from algorithms.simple.simple_heuristic import SimpleHeuristic
 from algorithms.dinkelbach_mip import DinkelbachMIP
 from algorithms.dinkelbach_alns.algorithm import DinkelbachALNS
+from algorithms.ils.ils_heuristic import ILSHeuristic
+from algorithms.savings.savings_heuristic import SavingsHeuristic
+from algorithms.tabu.tabu_heuristic import TabuSearchHeuristic
 
 
 REGISTRY = {
@@ -24,4 +27,8 @@ REGISTRY = {
     "dinkelbach_mip": DinkelbachMIP,
     # Matheuristic
     "dalns": DinkelbachALNS,
+    # Trajectory-based metaheuristic
+    "ils": ILSHeuristic,
+    "savings": SavingsHeuristic,
+    "tabu": TabuSearchHeuristic,
 }

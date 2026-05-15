@@ -27,6 +27,8 @@ def main():
 
     print(f"Found {len(instance_paths)} instances in {instance_dir}")
     print(f"Algorithms: {[a['name'] for a in config['algorithms']]}")
+
+    print(f"Number of algorithms: {len(config['algorithms'])}")
     print(f"Repetitions: {config.get('repetitions', 1)}")
     print(f"Time limit: {config.get('time_limit', 'none')}s")
 
