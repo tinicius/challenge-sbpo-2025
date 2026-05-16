@@ -1,0 +1,79 @@
+# Experiment configuration for the SBPO 2025 Wave Order-Picking Challenge
+
+# Dataset to run experiments on
+instance_dir: datasets/a
+
+# Number of repetitions per (algorithm, instance) pair
+repetitions: 5
+
+# Base seed for reproducibility (run i uses seed_base + i)
+seed_base: 42
+
+# Maximum number of parallel workers (null = cpu_count - 1)
+max_workers: null
+
+# Time limit per solver run in seconds (null = no limit)
+time_limit: 90
+
+# Output directory for results
+result_dir: results
+
+# Save problem output (selected orders and aisles) to CSV (default: false)
+save_output: true
+
+algorithms:
+  # Random
+
+  - name: simple_random_simple
+    algo: simple
+    deterministic: false
+    params:
+      order: random
+      greedy: simple
+
+  - name: simple_random_multi
+    algo: simple
+    deterministic: false
+    params:
+      order: random
+      greedy: multi
+
+  - name: simple_random_exact
+    algo: simple
+    deterministic: false
+    params:
+      order: random
+      greedy: exact
+
+  - name: simple_diff_exact_most_shared
+    algo: simple
+    deterministic: false
+    params:
+      order: diff
+      greedy: exact
+      first_order: most_shared
+
+  - name: simple_diff_weighted_multi_smaller
+    algo: simple
+    deterministic: false
+    params:
+      order: diff_weighted
+      greedy: multi
+      first_order: smaller
+
+  - name: simple_diff_weighted_multi_bigger
+    algo: simple
+    deterministic: false
+    params:
+      order: diff_weighted
+      greedy: multi
+      first_order: bigger
+
+  - name: simple_diff_weighted_exact_most_shared
+    algo: simple
+    deterministic: false
+    params:
+      order: diff_weighted
+
+      greedy: exact
+      first_order: most_shared

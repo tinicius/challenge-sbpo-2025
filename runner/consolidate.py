@@ -59,6 +59,27 @@ def consolidate_results(
 
     os.makedirs(output_dir, exist_ok=True)
 
+    # Load best objectives for gap calculation
+    best_obj_df = pd.DataFrame()
+
+    best_objectives_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(jsonl_path))),
+        "best_solutions",
+        "best_objectives.csv",
+    )
+
+    if os.path.exists(best_objectives_path):
+        best_obj_df = pd.read_csv(best_objectives_path)
+    else:
+        print(f"Warning: best_objectives.csv not found at {best_objectives_path}")
+
+    # Build lookup dict for best objectives: (dataset, instance_name) → best_objective
+    best_objectives_dict = {}
+    if not best_obj_df.empty:
+        for _, row in best_obj_df.iterrows():
+            key = (row["dataset"], row["instance"])
+            best_objectives_dict[key] = row["best_objective"]
+
     # Derive unique suffix from JSONL filename (e.g. runs_a_20260330_120000.jsonl → a_20260330_120000)
     jsonl_stem = os.path.splitext(os.path.basename(jsonl_path))[0]
     suffix = (
@@ -82,7 +103,9 @@ def consolidate_results(
     if dataset_col:
         group_cols.insert(0, dataset_col)
 
-    zero_stats = {k: 0 for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]}
+    zero_stats = {
+        k: 0 for k in ["mean", "median", "mode", "min", "max", "variance", "std_dev"]
+    }
 
     for group_key, group_df in df.groupby(group_cols):
         if dataset_col:
@@ -108,6 +131,17 @@ def consolidate_results(
         if feasible_runs > 0:
             obj_stats = _build_stats(feasible_df["objective"].tolist())
 
+            # Calculate gaps
+            gap_values = []
+            if not best_obj_df.empty:
+                best_obj = best_objectives_dict.get((dataset, instance), None)
+                if best_obj is not None and best_obj > 0:
+                    for obj in feasible_df["objective"].tolist():
+                        gap = (best_obj - obj) / best_obj
+                        gap_values.append(gap)
+
+            gap_stats = _build_stats(gap_values) if gap_values else zero_stats
+
             items_values = (
                 feasible_df["total_items"].tolist()
                 if "total_items" in feasible_df.columns
@@ -131,6 +165,7 @@ def consolidate_results(
             time_stats = _build_stats(time_values) if time_values else zero_stats
         else:
             obj_stats = zero_stats
+            gap_stats = zero_stats
             items_stats = zero_stats
             aisles_stats = zero_stats
             time_stats = zero_stats
@@ -146,6 +181,7 @@ def consolidate_results(
         }
         for prefix, stats in [
             ("objective", obj_stats),
+            ("gap", gap_stats),
             ("items", items_stats),
             ("aisles", aisles_stats),
             ("exec_time", time_stats),

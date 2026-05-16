@@ -7,11 +7,19 @@ from algorithms.utils.multi_greedy_aisle_select import multi_greedy_aisle_select
 from algorithms.utils.similarity import similarity
 from problems.base import ProblemInput
 
-_VALID_ORDER = {None, "asc", "desc", "similar", "diff"}
+_VALID_ORDER = {
+    "random",
+    "asc",
+    "desc",
+    "similar",
+    "similar_weighted",
+    "diff",
+    "diff_weighted",
+}
 
-_VALID_GREEDY = {"simple", "multi"}
+_VALID_GREEDY = {"simple", "multi", "exact"}
 
-_VALID_FIRST_ORDER = {None, "smaller", "bigger", "most_shared"}
+_VALID_FIRST_ORDER = {"random", "smaller", "bigger", "most_shared"}
 
 _EMPTY_RESULT = {"selected_orders": [], "visited_aisles": [], "objective": 0.0}
 
@@ -34,23 +42,15 @@ class SimpleHeuristic(Algorithm):
             )
 
         first_order = params.get("first_order")
-        if first_order not in _VALID_FIRST_ORDER:
+        if first_order not in _VALID_FIRST_ORDER and order in {
+            "similar",
+            "similar_weighted",
+            "diff",
+            "diff_weighted",
+        }:
             raise ValueError(
                 f"SimpleHeuristic: invalid 'first_order'={first_order!r}; "
                 f"expected one of {sorted(v for v in _VALID_FIRST_ORDER if v)} or unset"
-            )
-
-        similarity_weighted = params.get("similarity_weighted", False)
-        if not isinstance(similarity_weighted, bool):
-            raise ValueError(
-                f"SimpleHeuristic: invalid 'similarity_weighted'={similarity_weighted!r}; "
-                "expected bool"
-            )
-
-        exact = params.get("exact", False)
-        if not isinstance(exact, bool):
-            raise ValueError(
-                f"SimpleHeuristic: invalid 'exact'={exact!r}; expected bool"
             )
 
         exact_time_limit = params.get("exact_time_limit", 30.0)
@@ -77,8 +77,6 @@ class SimpleHeuristic(Algorithm):
         self._order = order
         self._greedy = greedy
         self._first_order = first_order
-        self._similarity_weighted = similarity_weighted
-        self._exact = exact
         self._seed = params.get("seed")
 
     @property
@@ -102,7 +100,7 @@ class SimpleHeuristic(Algorithm):
         if total_units < lb:
             return dict(_EMPTY_RESULT)
 
-        if self._exact:
+        if self._greedy == "exact":
             visited_aisles = solve_min_aisle_cover(
                 demand,
                 aisles,
@@ -131,7 +129,7 @@ class SimpleHeuristic(Algorithm):
         orders: list[dict[int, int]],
         aisles: list[dict[int, int]],
     ) -> list[int]:
-        if self._order is None:
+        if self._order == "random":
             rng = random.Random(self._seed) if self._seed is not None else random
             indices = list(range(n_orders))
             rng.shuffle(indices)
@@ -141,7 +139,10 @@ class SimpleHeuristic(Algorithm):
             return sorted(
                 range(n_orders),
                 key=lambda i: similarity(
-                    reference, orders[i], weighted=self._similarity_weighted
+                    reference,
+                    orders[i],
+                    weighted=self._order == "similar_weighted"
+                    or self._order == "diff_weighted",
                 ),
                 reverse=(self._order == "similar"),
             )
