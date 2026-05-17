@@ -88,31 +88,32 @@ class SimpleHeuristic(Algorithm):
         aisles = instance.aisles
         lb, ub = instance.lb, instance.ub
 
-        order_sizes = [sum(o.values()) for o in orders]
-        indices = self._build_traversal(instance.nOrders, order_sizes, orders, aisles)
+        order_sizes = [sum(order.values()) for order in orders]
 
         stock = self._aggregate_stock(aisles)
 
+        sequence = self._build_sequence(instance.nOrders, order_sizes, orders, aisles)
+
         selected_orders, demand, total_units = self._pick_orders(
-            indices, orders, order_sizes, stock, ub
+            sequence, orders, order_sizes, stock, ub
         )
 
         if total_units < lb:
             return dict(_EMPTY_RESULT)
 
-        if self._greedy == "exact":
-            visited_aisles = solve_min_aisle_cover(
-                demand,
-                aisles,
-                time_limit_seconds=self._exact_time_limit,
-                num_workers=self._exact_num_workers,
-            ).selected_aisles
-        else:
-            visited_aisles = (
-                multi_greedy_aisle_select(demand, aisles)
-                if self._greedy == "multi"
-                else greedy_aisle_select(demand, aisles)
-            )
+        match self._greedy:
+            case "exact":
+                visited_aisles = solve_min_aisle_cover(
+                    demand,
+                    aisles,
+                    time_limit_seconds=self._exact_time_limit,
+                    num_workers=self._exact_num_workers,
+                ).selected_aisles
+            case "multi":
+                visited_aisles = multi_greedy_aisle_select(demand, aisles)
+            case "simple":
+                visited_aisles = greedy_aisle_select(demand, aisles)
+
         if not visited_aisles:
             return dict(_EMPTY_RESULT)
 
@@ -122,35 +123,47 @@ class SimpleHeuristic(Algorithm):
             "objective": total_units / len(visited_aisles),
         }
 
-    def _build_traversal(
+    def _build_sequence(
         self,
         n_orders: int,
         order_sizes: list[int],
         orders: list[dict[int, int]],
         aisles: list[dict[int, int]],
     ) -> list[int]:
-        if self._order == "random":
-            rng = random.Random(self._seed) if self._seed is not None else random
-            indices = list(range(n_orders))
-            rng.shuffle(indices)
-            return indices
-        if self._order in {"similar", "diff"}:
-            reference = self._pick_first_order(n_orders, order_sizes, orders, aisles)
-            return sorted(
-                range(n_orders),
-                key=lambda i: similarity(
-                    reference,
-                    orders[i],
-                    weighted=self._order == "similar_weighted"
-                    or self._order == "diff_weighted",
-                ),
-                reverse=(self._order == "similar"),
-            )
-        return sorted(
-            range(n_orders),
-            key=order_sizes.__getitem__,
-            reverse=(self._order == "desc"),
-        )
+
+        indices = list(range(n_orders))
+
+        match self._order:
+            case "random":
+                rng = random.Random(self._seed) if self._seed is not None else random
+                rng.shuffle(indices)
+                return indices
+            case "similar" | "similar_weighted" | "diff" | "diff_weighted":
+                reference = self._pick_first_order(
+                    n_orders, order_sizes, orders, aisles
+                )
+
+                weighted = (
+                    self._order == "similar_weighted" or self._order == "diff_weighted"
+                )
+
+                similar = self._order == "similar" or self._order == "similar_weighted"
+
+                return sorted(
+                    indices,
+                    key=lambda i: similarity(
+                        reference,
+                        orders[i],
+                        weighted=weighted,
+                    ),
+                    reverse=similar,
+                )
+            case "asc":
+                return sorted(indices, key=order_sizes.__getitem__)
+            case "desc":
+                return sorted(indices, key=order_sizes.__getitem__, reverse=True)
+
+        raise ValueError(f"SimpleHeuristic: invalid 'order'={self._order!r}")
 
     def _pick_first_order(
         self,
